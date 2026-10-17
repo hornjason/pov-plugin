@@ -70,7 +70,7 @@ describe("A one-pager template ships", () => {
   });
 
   test("TPL-4: the skill reads the template and offers the override", () => {
-    const step = section(SKILL, "### 6. Generate the one-pager", /\n### /);
+    const step = section(SKILL, "### 4. Render", /\n### /);
     expect(step.length).toBeGreaterThan(300);
     expect(step).toContain("${CLAUDE_PLUGIN_ROOT}/templates/one-pager.html.tmpl");
     expect(step).toContain(OVERRIDE_ENV);
@@ -78,6 +78,27 @@ describe("A one-pager template ships", () => {
     // template" is advice; "do not change the CSS" is the rule that keeps two
     // POVs matching when the model has an opinion about the colour.
     expect(step).toMatch(/do not change the css/i);
+  });
+
+  test("TPL-4b: the template carries the validated typeface and accent", () => {
+    // Pinned to the one POV that has been through the full loop and been
+    // read by its recipients, not merely cross-checked against the example
+    // — TPL-5 below already proves those two agree, and on 2026-10-16 they
+    // agreed on `Inter` and `#1f4e79`, which is not what any real POV has
+    // ever looked like.
+    //
+    // How they got there is the reason this test exists. A PII sweep read
+    // the typeface and palette as a brand lifted from a real company and
+    // neutralised both. They are the SENDER's brand. The repo shipped a
+    // default template that no real run would ever use, and every check in
+    // this file stayed green because they all compare this repo to itself.
+    //
+    // Two things can turn this red and both should: neutralising the brand
+    // again, and the house style genuinely changing. The second is a real
+    // event that deserves a deliberate edit here rather than a silent drift.
+    const tmpl = readFileSync(TEMPLATE_PATH, "utf-8");
+    expect(tmpl).toContain("'Red Hat Display'");
+    expect(tmpl).toContain("#EE0000");
   });
 
   test("TPL-5: the worked example and the template share one stylesheet", () => {

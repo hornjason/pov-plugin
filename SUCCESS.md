@@ -56,8 +56,25 @@ following only the README. Not a description of the steps — the steps, run.
 
 ### Claim 2 — It runs end to end against a real dashboard
 
-Discovers the dashboard, resolves the customer, pulls the intelligence, builds
-the artifacts, and publishes them to that customer's Drive folder.
+Discovers the dashboard, resolves the customer, **drives the dashboard's POV
+API**, renders the artifacts, and publishes them to that customer's Drive
+folder.
+
+**Rewritten 2026-10-17, because the claim described the wrong architecture.**
+This plugin spent its whole life assembling a POV out of raw intelligence
+endpoints. The dashboard has done that behind one call since issue #1480:
+`POST /api/customer/:name/pov/generate` takes a free-form `intent` and a
+`sourceUrls` list, grounds research against them, applies the AE's voice
+profile, runs an AI-detection gate and publishes. The plugin was reading 11 of
+42 customer-scoped endpoints and none of the ones that mattered.
+
+What the dashboard does not do is make it look like anything — its one-pager
+comes back as four markdown headings. **The visual layer is this plugin's
+job**, and that is now the whole of what it claims to do.
+
+The gap was found by Jason asking why the data looked so thin, then asking
+whether the earlier hand-built POVs could be read to see what they actually
+used. They could. They were on disk the whole time.
 
 **How it fails:** it cannot find a dashboard that is running; it finds the wrong
 one of several; it silently skips an intelligence source and produces a POV that
@@ -67,11 +84,17 @@ artifact instead of updating in place, breaking existing share links.
 **How to measure it:** run it against the live dashboard and check the Drive
 folder, the share links, and which endpoints actually returned data.
 
-**Known unresolved:** the spec says the one-pager is a *"PDF rendered from
-HTML"* and nothing in the plugin names a tool that renders PDFs, while the
-dashboard's publish path tracks a doc and an HTML and no PDF. Either the spec is
-describing an artifact the pipeline does not produce, or the rendering lives
-somewhere not yet found. The first end-to-end run settles it.
+**Resolved 2026-10-17 — and not by a run.** The question was *"nothing in the
+plugin names a tool that renders PDFs"*, and it was answered by reading the
+working directory that produced the real POVs rather than by generating
+another one: **headless Chrome**, `--print-to-pdf`. The plugin now names it.
+
+Worth recording why it stayed open as long as it did. It was filed as a
+question about the pipeline — *does the pipeline produce this artifact?* — when
+it was a question about the instructions: the spec demanded a PDF and no
+document said what makes one. An instruction nobody can follow looks exactly
+like a capability nobody has, and the way to tell them apart was to go and
+look at what had already been done, which cost one file read.
 
 ### Claim 3 — Two POVs for two customers look like the same product
 
@@ -95,6 +118,26 @@ own rules open with.
 
 **Also required:** a config override. Someone who wants a different look should
 point at their own template rather than fork the spec.
+
+**The default was wrong until 2026-10-17, and nothing here could see it.** The
+one POV that has been through the full loop uses `Red Hat Display` and
+`#EE0000`. The shipped template used `Inter` and `#1f4e79`, because a PII
+sweep read the typeface and palette as a brand lifted from a real company and
+neutralised them. They are the **sender's** brand — the POV is from Red Hat,
+the case-study registry is a list of Red Hat references, and the spec names
+OpenShift three times.
+
+Every check in `test/template.test.ts` stayed green through all of it, and for
+an instructive reason: they compare **this repo to itself**. The template and
+the worked example agreed byte for byte on a stylesheet neither Jason nor any
+recipient has ever seen. An agreement check cannot tell a shared right answer
+from a shared wrong one — the same shape as the three documents that agreed on
+port 3000.
+
+`TPL-4b` now pins the typeface and the accent to the validated artifact rather
+than to the example beside it. Two things turn it red: neutralising the brand
+again, and the house style genuinely changing. The second deserves a
+deliberate edit, which is the point.
 
 ### Claim 4 — It refuses honestly
 

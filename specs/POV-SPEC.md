@@ -82,9 +82,15 @@ The POV is attached as a PDF to a short outreach email:
 ### Voice (Rule 10b)
 
 10b. **Match the owning AE's voice.** Tone, sentence structure, opener pattern,
-     vocabulary. If the dashboard exposes a voice profile for the AE, use it. If not,
-     use a humble-expert voice: direct, specific, no superlatives. Never ship a
-     generic-sounding email when a profile is available.
+     vocabulary. The dashboard serves the profile at `/api/ae/{name}/style-guide`,
+     and the generation endpoint applies it without being asked. If no profile
+     exists, use a humble-expert voice: direct, specific, no superlatives. Never
+     ship a generic-sounding email when a profile is available.
+
+     *The source matters as much as the rule.* An earlier version said only
+     "if the dashboard exposes a voice profile, use it" and named no endpoint.
+     It does expose one, and nothing called it — a rule with no locatable
+     source is a rule nobody can satisfy or check. SC-43 grades this.
 
 ### Anti-Patterns (Rules 11-15)
 
@@ -206,6 +212,32 @@ enterprise" references get deleted by recipients.
 
 ---
 
+## Validated Format Reference
+
+One POV has been through the full loop — written, humanized, rendered,
+published, and read by its recipients. Its shape is the reference, and it is
+recorded here because "follow the 41 rules" and "produce that document" are
+not the same instruction. The rules constrain; this describes.
+
+| Element | What the validated POV did |
+|---|---|
+| Email length | ~90 words, under the 125 ceiling rather than near it |
+| Email body | three tight bullets, not three prose paragraphs |
+| One-pager reference | one sentence — *"one-pager attached with the full convergence map"* |
+| One-pager flow | narrative, not a dashboard: Environment → Insight → Convergence → Path Forward |
+| Emphasis | bold terms running inline through body copy |
+| Convergence | one callout box, visually dominant, one idea in it |
+| Diagram | two columns, the product bridging the two initiatives |
+| What it did **not** use | stat tiles, card grids, a date stamp, a file name in the footer |
+
+The last row is the useful one. Stat tiles and card grids satisfy every
+written rule and still produce a different document — the first draft of that
+POV used them and was rebuilt. A rule set cannot catch that, which is why
+claim 3's evidence is two renders and a human looking at them.
+
+**The customer is not named here, deliberately.** The format is the
+transferable part; the account is not, and this file is public.
+
 ## Output Artifacts
 
 | Artifact | Format | Destination |
@@ -268,4 +300,15 @@ and recreate — it breaks sharing and link history.
 - [ ] SC-38: Print preview shows no bleed onto a second page
 - [ ] SC-39: Email is readable on mobile without scrolling
 - [ ] SC-40: One-pager stands alone when read without the email
+
+### Process (SC-41 to SC-43)
+
+These three govern how the artifacts are produced rather than what they
+contain, and they were lost once already: an earlier copy of this spec carried
+SC-1 to SC-40 only, so rule 10b sat here with nothing grading it. A rule whose
+criterion is missing is a rule that cannot fail.
+
+- [ ] SC-41: Peer references come from the Verified Case Study Registry
+- [ ] SC-42: No ask exceeds 20 minutes
+- [ ] SC-43: Emails use the AE voice profile whenever the dashboard serves one
 

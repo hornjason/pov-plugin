@@ -64,6 +64,18 @@ real data in the response, while the last step publishes to the customer's real 
 folder. Guessing there does not fail loudly; it produces a plausible document in the
 right place built from fixtures.
 
+**Your dashboard also has to be new enough to generate.** The plugin drives
+`POST /api/customer/:name/pov/generate`; a dashboard older than that endpoint is
+reachable but cannot do the job, and the skill refuses with a message saying so
+rather than failing somewhere less obvious.
+
+It decides that by asking the endpoint, not by comparing a version number. A
+version is a label about the software; the endpoint is the software. Anyone
+running a locally built dashboard has the API and no release to point at, so a
+"version ≥ X" check would turn away the one person who definitely works —
+and a future release could ship the route disabled, which the same check would
+wave through.
+
 ## Changing how the one-pager looks
 
 The one-pager is built from `templates/one-pager.html.tmpl`, which ships in
@@ -84,7 +96,7 @@ else, including the whole stylesheet, is yours to change.
 
 | Path | What |
 |---|---|
-| `specs/POV-SPEC.md` | The 40 design rules and 40 success criteria |
+| `specs/POV-SPEC.md` | The 41 design rules and 43 success criteria |
 | `skills/pov/SKILL.md` | The skill |
 | `skills/pov/references/dashboard-api.md` | Endpoints the skill consumes |
 | `skills/pov/references/humanization.md` | AI-tell checklist, run before any draft ships |

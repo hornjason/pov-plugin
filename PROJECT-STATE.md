@@ -18,7 +18,7 @@ from a local working directory, which stays private and was not modified.
 - [x] Repo scaffolded, git initialized on `main`
 - [x] Marketplace + plugin manifests, single-repo pattern (`"source": "./"`)
 - [x] `skills/pov/SKILL.md` reading the spec via `${CLAUDE_PLUGIN_ROOT}`
-- [x] `specs/POV-SPEC.md` retyped clean — 40 rules, 40 SCs, no customer data
+- [x] `specs/POV-SPEC.md` retyped clean — 41 rules, 43 SCs, no customer data
 - [x] `skills/pov/references/dashboard-api.md` — the 15 endpoints the skill consumes
 - [x] `skills/pov/references/humanization.md` — AI-tell checklist
 - [x] Fictional worked example (Northwind Logistics): one-pager HTML + two personas

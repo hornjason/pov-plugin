@@ -17,7 +17,7 @@ A Claude Code plugin that generates unsolicited customer POVs — a one-page vis
 
 | Spec | What it governs |
 |------|-----------------|
-| `specs/POV-SPEC.md` | The methodology — 40 design rules and 40 success criteria. Everything the skill generates is graded against it. |
+| `specs/POV-SPEC.md` | The methodology — 41 design rules and 43 success criteria. Everything the skill generates is graded against it. |
 
 ## Rules
 

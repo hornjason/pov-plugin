@@ -37,20 +37,43 @@ that looks complete and isn't.
 | Purpose | Method | Path |
 |---|---|---|
 | Reachability check | GET | `/api/accounts` |
-| List briefs | GET | `/api/briefs` |
-| Read one brief | GET | `/api/briefs/:name` |
-| Free-text account query | GET | `/api/customer-query` |
+| Capability probe, and generation | POST | `/api/customer/:name/pov/generate` |
 | Contacts for persona selection | GET | `/api/customer/:name/contacts` |
-| Meeting attendees | GET | `/api/customer/:name/attendees` |
-| Trigger intelligence refresh | POST | `/api/customer/:name/generate-intelligence` |
-| Refresh status | GET | `/api/customer/:name/intelligence-status` |
-| News signals | GET | `/api/customer/:name/intelligence/news` |
-| Event signals | GET | `/api/customer/:name/intelligence/events` |
-| Product roadmap fit | GET | `/api/customer/:name/intelligence/roadmap` |
-| Expansion opportunities | GET | `/api/customer/:name/expansion-opportunities` |
-| Create campaign | POST | `/api/customer/:name/campaigns/generate` |
-| Preview before publishing | GET | `/api/customer/:name/campaigns/:id/preview` |
-| Publish to the customer folder | POST | `/api/customer/:name/campaigns/:id/publish` |
+| AE voice profile (rule 10b, SC-43) | GET | `/api/ae/:name/style-guide` |
+
+Four, where this file once listed fifteen. The long list described a POV being
+assembled here out of raw intelligence, which is work the dashboard already
+does behind the one POST below. The other eleven endpoints still exist and are
+still useful — they are simply not this plugin's business, and a reference that
+lists endpoints nobody calls teaches a reader to stop trusting it.
+
+### POST `/api/customer/:name/pov/generate`
+
+The whole interface. Request body:
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `intent` | string | **yes** | the point of view to argue; max 2000 chars; `400` without it |
+| `sourceUrls` | string[] | no | user-supplied material; the first 10 are used |
+| `personas` | `{name?, role}[]` | no | omit to let the dashboard choose |
+| `publish` | boolean | no, **but send it** | **omitting it publishes** — the route reads `publish !== false` |
+
+Responses:
+
+| Status | Body | Meaning |
+|---|---|---|
+| `400` | `{"error":"intent is required"}` | the API is present — this is the capability probe |
+| `400` | `{"error":"Unknown customer name"}` | resolve `:name` against `/api/accounts` |
+| `409` | in-progress | one generation per customer at a time |
+| `404` | plain text, not JSON | **the dashboard has no POV API** |
+
+`intent` is validated **before** the customer lookup, which is what makes an
+empty-body probe unambiguous: it answers "can this dashboard generate" without
+the customer name mattering, so a freshly installed dashboard with nothing
+seeded still reports correctly.
+
+The response carries the one-pager sections and the per-persona emails, with
+the AE voice profile already applied and the AI-detection gate already run.
 
 ## Notes
 

@@ -16,8 +16,8 @@ updated: 2026-10-16
 | project-state.json | Source of truth for project status | When editing state |
 | package.json | Dependencies and scripts | Adding deps or scripts |
 | tsconfig.json | TypeScript configuration | Changing TS settings |
-| specs/POV-SPEC.md | The methodology — 40 rules, 40 SCs. Single copy; the skill reads it at `${CLAUDE_PLUGIN_ROOT}/specs/POV-SPEC.md` | Changing what a POV must contain |
-| skills/pov/SKILL.md | The skill body — 9 steps, stops loudly if the dashboard is unreachable | Changing how a POV gets generated |
+| specs/POV-SPEC.md | The methodology — 41 rules, 43 SCs. Single copy; the skill reads it at `${CLAUDE_PLUGIN_ROOT}/specs/POV-SPEC.md` | Changing what a POV must contain |
+| skills/pov/SKILL.md | The skill body — drives the dashboard POV API and renders the result | Changing how a POV gets generated |
 | .claude-plugin/marketplace.json | Makes this repo installable with `claude plugin marketplace add` | Changing how it is distributed |
 
 Hand-edited (#370 preserves this). Two rows the scaffold wrote were removed
