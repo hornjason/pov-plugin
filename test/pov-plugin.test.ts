@@ -76,29 +76,29 @@ function isBinary(path: string): boolean {
 export const IDENTITY_FILE = ".pii-identities.local.json";
 
 /**
- * The files exempt from the scan, because each must contain the very strings
- * the scan looks for.
- *
- * - the mutation test plants a sample of every pattern, by design
- * - the identity `.example` is a list of names; a template for "names that
- *   must not appear" cannot be scanned for the names it demonstrates
+ * The only file exempt from the scan, because it must contain the very
+ * strings the scan looks for: the mutation test plants a sample of each
+ * pattern.
  *
  * `test/pov-plugin.test.ts` is NOT on this list and used to be, because it
  * held the customer names. It holds none now, which is the point of the
  * split above — and it has twice caught its own documentation since, which
  * is the argument for leaving it scanned.
  *
- * ALLOWLIST-1 pins this to exactly two entries. Adding a third means a real
+ * The identity `.example` was briefly added here and has been taken back
+ * out. It is a list of names, so scanning it against an active list that IS
+ * that same file reports every name as a leak — but the fix for that is to
+ * stop CI using the example as its active list, not to stop scanning the
+ * example. Exempting it meant a genuine company name placed in the template
+ * would ship unexamined, which is a weakening of the control and not a
+ * resolution of the conflict. CI now writes its own distinct list.
+ *
+ * ALLOWLIST-1 pins this to exactly one entry. Adding a second means a real
  * file stopped being checked, and that should cost a deliberate edit and a
  * failing test rather than a quiet append.
- *
- * Exempting the `.example` costs one thing and IDENT-4 pays it back: a real
- * name placed in the example would no longer be caught by the scan, so
- * IDENT-4 compares the example's names against the active list directly.
  */
 const SELF_REFERENTIAL = new Set([
   "test/pii-scan-mutation.test.ts",
-  ".pii-identities.local.json.example",
 ]);
 
 /**
@@ -307,8 +307,8 @@ describe("Published repo carries no customer data", () => {
     expect(piiViolations(files, ROOT, structuralPatterns())).toEqual([]);
   });
 
-  test("ALLOWLIST-1: exactly two files are exempt, and both exist", () => {
-    expect(SELF_REFERENTIAL.size).toBe(2);
+  test("ALLOWLIST-1: exactly one file is exempt, and it exists", () => {
+    expect(SELF_REFERENTIAL.size).toBe(1);
     for (const rel of SELF_REFERENTIAL) {
       expect(existsSync(join(ROOT, rel))).toBe(true);
     }
@@ -389,30 +389,18 @@ describe("Published repo carries no customer data", () => {
     // It has to be a usable template — a non-empty list, so a stranger who
     // copies it gets a gate that runs rather than one that throws.
     expect(list.identities.length).toBeGreaterThan(0);
-    // Every name in it has to be fictional, and this is the only check on
-    // that: the example is exempt from the scan (it is a list of names, so
-    // scanning it for names is incoherent), which means a real name placed
-    // here would otherwise ship unnoticed.
-    //
     // Fiction is not directly checkable, so the proxy is that the ACTIVE
-    // list must not contain any of them.
+    // list must not contain any of these names.
+    //
+    // This assertion is unconditional on purpose. An earlier version skipped
+    // it when the active list and the example were the same file, which is
+    // what CI used to do — and a comparison of a file against itself is not
+    // a weakened check, it is no check, returning true for every input. The
+    // fix was to stop CI using the example as its list rather than to teach
+    // this test to recognise the case and pass.
     const real = loadIdentityList(ROOT);
     if (real.status !== "present") return;
-
-    // Unless the active list IS this file. CI has no real list — the names
-    // are the thing this repo must not publish — so the workflow copies the
-    // example into place, and comparing it against itself would fail on
-    // every name for a reason that says nothing about fiction.
-    //
-    // Recorded as a branch with its reason rather than passed over in
-    // silence: this check is NOT MEASURED on a machine without a real list,
-    // and on that machine nothing else measures it either.
-    const activeIsTheExample = readFileSync(join(ROOT, IDENTITY_FILE), "utf-8").trim() === raw.trim();
-    if (activeIsTheExample) {
-      expect(real.list.identities).toEqual(list.identities);
-      return;
-    }
-
+    expect(readFileSync(join(ROOT, IDENTITY_FILE), "utf-8").trim()).not.toEqual(raw.trim());
     for (const name of list.identities) {
       expect(real.list.identities.map(s => s.toLowerCase())).not.toContain(String(name).toLowerCase());
     }

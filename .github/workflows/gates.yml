@@ -25,15 +25,48 @@ jobs:
       # with nothing to find, so "no list" has to be loud somewhere, and the choice is
       # between loud-and-blocking here or silent everywhere.
       #
-      # So CI runs with the tracked example, whose names are fictional. That is an
-      # honest reduced measurement, not a bypass: the structural half — every email at
-      # a non-reserved domain, LinkedIn URLs, Drive and Docs ids — runs at full
+      # So CI writes its own list of fictional names. That is an honest reduced
+      # measurement, not a bypass: the structural half — every email at a
+      # non-reserved domain, LinkedIn URLs, Drive and Docs ids — runs at full
       # strength and is the half that catches a leak nobody wrote a name for. The
-      # identity half runs against 3 fictional names here and against the real list on
+      # identity half runs against these two names here and against the real list on
       # the machine where commits are actually made, which is where a customer name
       # would enter the repo in the first place.
-      - name: Provide the fictional identity list CI scans against
-        run: cp .pii-identities.local.json.example .pii-identities.local.json
+      #
+      # The name is GENERATED, not written literally, and that is the whole
+      # difficulty of this step rather than a flourish. Two earlier versions were
+      # wrong in instructive ways:
+      #
+      #   `cp .pii-identities.local.json.example` — the example is itself a tracked,
+      #   scanned file listing names, so using it as the active list makes every
+      #   name in it a finding against itself. The two tempting repairs are both
+      #   weakenings: exempting the example from the scan lets a genuine company
+      #   name in the template ship unexamined, and teaching IDENT-4 to skip when
+      #   the two files match replaces the check with a comparison of a file
+      #   against itself, which returns true for every input.
+      #
+      #   A literal list here — same trap one level out. This workflow is tracked
+      #   and scanned too, so any name written on this line is a name the gate
+      #   then finds in this file.
+      #
+      # Anything literal and tracked collides. A run-scoped name cannot.
+      #
+      # Be precise about what this measures: that the identity machinery EXECUTES
+      # in CI — the list is non-empty, patterns compile, the scan runs, and the
+      # refusal path is not taken. It does not measure that real customer names are
+      # absent. Nothing in CI can, because the names are the thing this repo must
+      # not contain. That measurement happens on the machine holding the real list,
+      # which is the machine where a customer name would be written in the first
+      # place.
+      - name: Write a run-scoped identity list so the scan executes
+        run: |
+          set -euo pipefail
+          printf '{"identities":["Synthetic-%s-Holdings"],"trackers":["synthetic/%s"]}\n' \
+            "$GITHUB_RUN_ID" "$GITHUB_RUN_ID" > .pii-identities.local.json
+          echo "UNMEASURED: the named-customer half of the PII gate ran against a"
+          echo "run-scoped synthetic name, which proves it executes and proves"
+          echo "nothing about real names. The structural half below is measured in"
+          echo "full. Real names are scanned on the machine that makes commits."
 
       # The portable gate runs first and needs no dependencies, so a PII leak
       # fails the build even if installation breaks.
