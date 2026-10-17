@@ -1,0 +1,13 @@
+{
+  "name": "pov-marketplace",
+  "owner": {
+    "name": "Jason Horn"
+  },
+  "plugins": [
+    {
+      "name": "pov",
+      "source": "./",
+      "description": "Generate research-backed customer POV one-pagers and outreach emails from local dashboard intelligence."
+    }
+  ]
+}

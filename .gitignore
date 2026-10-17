@@ -1,0 +1,31 @@
+node_modules/
+.DS_Store
+*.log
+.rungate/
+conformity-findings.json
+
+# Generated POV artifacts never belong in this repo — they contain customer data.
+out/
+*.pdf
+
+# The named-customer half of the PII gate. The names themselves are the thing
+# this repo must not publish, so they live here and never in a commit. The
+# tracked `.example` alongside it carries fictional names only, and
+# test/pov-plugin.test.ts refuses rather than passes when this file is absent.
+.pii-identities.local.json
+
+# Added by rungate scaffold
+dist/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Corrected by hand. The scaffold appended these with a trailing slash, which
+# in gitignore syntax restricts a pattern to DIRECTORIES — `credentials.json/`
+# cannot match the file `credentials.json`, which is the filename Google's
+# OAuth client-secrets download uses. Filed upstream against the harness repo.
+# Re-scaffolding will try to re-add them; `git check-ignore -v credentials.json`
+# is the check that tells you whether they still work.
+credentials.json
+service-account*

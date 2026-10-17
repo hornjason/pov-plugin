@@ -1,0 +1,9 @@
+{
+  "name": "pov",
+  "version": "0.1.0",
+  "description": "Generate research-backed customer POV one-pagers and outreach emails from local dashboard intelligence.",
+  "author": {
+    "name": "Jason Horn"
+  },
+  "keywords": ["pov", "outreach", "sales-engineering", "one-pager", "convergence"]
+}

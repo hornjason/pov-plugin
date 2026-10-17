@@ -1,0 +1,53 @@
+name: Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # The portable gate runs first and needs no dependencies, so a PII leak
+      # fails the build even if installation breaks.
+      - name: PII and manifest gate
+        run: bun test test/pov-plugin.test.ts test/pii-scan-mutation.test.ts
+
+      - run: bun install
+
+      # UNBLOCKED as of rungate 0.5.0 (2026-10-17). Two upstream bugs had to
+      # land, and it is worth recording both, because each one was invisible
+      # from here in a different way.
+      #
+      # The first was packaging. Published 0.4.1 could not scaffold this repo
+      # at all — lib/conformity.ts READS config/matcher-registry.json by
+      # building a path from its own module directory rather than importing
+      # it, so the upstream closure check, which knew only about imports,
+      # could not see that files[] omitted config/. `bunx rungate scaffold .`
+      # died with ENOENT. An earlier version of this comment said the
+      # packaging bug was fixed in 0.4.1; that was true of the bug it named
+      # and false of the distribution.
+      #
+      # The second was CONFIG-1 refusing this repo for having no TypeScript.
+      # The check walks TS sources looking for config reads outside the
+      # loader, found zero files, and FAILED rather than reporting what it
+      # had not measured — correct for a code project whose file walk broke,
+      # wrong for a markdown-only plugin that has no TypeScript by design.
+      #
+      # It now reports UNMEASURED and says why, naming all 21 entries it
+      # declined and the class of each. Three checks report UNMEASURED here
+      # — TSC-1, CONFIG-1, CONFIG-2 — and all three are honest: this plugin
+      # ships markdown, so there is nothing for them to read. That is the
+      # point of the distinction. "Nothing was checked" is recorded, rather
+      # than being indistinguishable from "nothing was wrong".
+      #
+      # 44 pass, 40 todo, 0 fail.
+      - name: Conformity and spec drift
+        run: bun test test/scaffold-conformity.test.ts

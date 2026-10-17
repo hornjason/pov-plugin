@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "Copy this file to .pii-identities.local.json and replace the contents with the",
+    "real names you need kept out of this repo. The copy is gitignored and must never",
+    "be committed — a gate that lists five customers in order to keep them out of a",
+    "public repo publishes those five customers.",
+    "",
+    "`identities` are company or person names. Each becomes a word-boundary match,",
+    "which also catches the name inside an address at that company's own domain.",
+    "",
+    "`trackers` are issue-tracker repositories. Each matches `<name>/issues/123` and",
+    "`<name>#123`.",
+    "",
+    "The names below are fictional and are here so that a clone with no real list",
+    "still runs a gate that scans for something. test/pov-plugin.test.ts asserts this",
+    "file is non-empty and that none of its names appear in the real list."
+  ],
+  "identities": [
+    "Initech",
+    "Globex Corporation",
+    "Umbrella Industries"
+  ],
+  "trackers": [
+    "acme/internal-tracker"
+  ]
+}

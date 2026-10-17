@@ -1,0 +1,4 @@
+Placeholder. `.claude/rules/docs-routing.md` routes council documents here, and a
+routing table that points at a directory which does not exist teaches a reader
+to stop trusting it — the same argument `.claude/rules/key-files.md` makes for
+the two rows it removed.

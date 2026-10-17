@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+  POV one-pager template.
+
+  This file is the answer to claim 3: two POVs for two customers have to look
+  like the same product, and "both satisfy rule 24" does not get you there.
+  Two documents can each honour "whitespace is functional" and share no visual
+  DNA at all. The type scale, the colour, the section order and the diagram
+  treatment live HERE so they are the same every time, rather than being
+  reconstructed from the model's taste on the day.
+
+  Replace every {{PLACEHOLDER}}. Do not restyle. If a customer needs a
+  different look, copy this file, change it, and point POV_TEMPLATE_PATH at
+  the copy — that is what the override is for, and it is better than editing
+  the shipped one because the shipped one is what makes two POVs match.
+
+  Rule references in the comments are to specs/POV-SPEC.md. They mark the
+  elements whose POSITION is load-bearing; moving them breaks the rule, not
+  just the look.
+
+  No date stamp anywhere, by rule 25.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{CUSTOMER_NAME}} — A Perspective</title>
+<style>
+  @page { size: letter; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #151515; margin: 0; padding: 0.45in 0.55in;
+    font-size: 10.5pt; line-height: 1.5; max-width: 8.5in;
+  }
+  h1 { font-size: 19pt; line-height: 1.15; margin: 0 0 2pt; letter-spacing: -0.4pt; }
+  .sub { color: #6a6e73; font-size: 10pt; margin: 0 0 16pt; }
+  h2 {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1.1pt;
+    color: #6a6e73; margin: 15pt 0 5pt; font-weight: 700;
+  }
+  p { margin: 0 0 8pt; }
+  strong { font-weight: 700; }
+  .callout {
+    border-left: 4px solid #1f4e79; background: #eef3f8;
+    padding: 11pt 14pt; margin: 14pt 0;
+  }
+  .callout p { margin: 0; font-size: 11.5pt; line-height: 1.45; }
+  .bridge {
+    display: flex; align-items: stretch; gap: 10pt;
+    margin: 14pt 0; text-align: center;
+  }
+  .bridge div {
+    flex: 1; border: 1px solid #d2d2d2; border-radius: 3px;
+    padding: 9pt 7pt; font-size: 9pt; line-height: 1.35;
+  }
+  .bridge .mid {
+    background: #151515; color: #fff; border-color: #151515;
+    font-weight: 700; display: flex; align-items: center; justify-content: center;
+    flex: 0 0 24%;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 9.5pt; }
+  th, td { text-align: left; padding: 5pt 8pt 5pt 0; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+  th { color: #6a6e73; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.6pt; }
+  .tradeoff { color: #4d5258; font-style: italic; font-size: 9.5pt; }
+  .cta { margin-top: 16pt; padding-top: 9pt; border-top: 2px solid #151515; text-align: right; }
+  .cta strong { font-size: 11pt; }
+</style>
+</head>
+<body>
+
+  <!-- Top-left entry point, by rule 21. The headline is the thesis in one
+       line, not the customer's name and not a product name. -->
+  <h1>{{HEADLINE}}</h1>
+  <p class="sub">A perspective for {{CUSTOMER_NAME}}</p>
+
+  <h2>Your Environment</h2>
+  <!-- The 2-3 initiatives, named by their INTERNAL program names. Bold each
+       one. This paragraph is what proves you did the reading. -->
+  <p>{{ENVIRONMENT}}</p>
+
+  <h2>What We're Seeing</h2>
+  <!-- Why the initiatives above are currently treated as separate, and the
+       cost of that. State the situation; do not yet state the thesis. -->
+  <p>{{OBSERVATION}}</p>
+
+  <!-- The convergence callout: the most important element on the page, rule
+       32. One idea. If this paragraph could be about another customer, the
+       thesis is not specific enough to send. -->
+  <div class="callout">
+    <p>{{CONVERGENCE_THESIS}}</p>
+  </div>
+
+  <!-- Simple visual showing the product bridging both initiatives, rule 33.
+       Three boxes: initiative, the thing that connects them, initiative. -->
+  <div class="bridge">
+    <div><strong>{{BRIDGE_LEFT_TITLE}}</strong><br>{{BRIDGE_LEFT_DETAIL}}</div>
+    <div class="mid">{{BRIDGE_MIDDLE}}</div>
+    <div><strong>{{BRIDGE_RIGHT_TITLE}}</strong><br>{{BRIDGE_RIGHT_DETAIL}}</div>
+  </div>
+
+  <h2>The Numbers</h2>
+  <!-- Peer references. One named company and one concrete metric each, and a
+       DIFFERENT reference per persona at the same account. Verify every URL
+       resolves before using it. -->
+  <table>
+    <tr><th>Company</th><th>Situation</th><th>Outcome</th></tr>
+    <tr>
+      <td><strong>{{PEER_1_NAME}}</strong></td>
+      <td>{{PEER_1_SITUATION}}</td>
+      <td>{{PEER_1_OUTCOME}}</td>
+    </tr>
+    <tr>
+      <td><strong>{{PEER_2_NAME}}</strong></td>
+      <td>{{PEER_2_SITUATION}}</td>
+      <td>{{PEER_2_OUTCOME}}</td>
+    </tr>
+  </table>
+
+  <!-- Exactly one honest limitation, rule 29. Not a disclaimer and not a
+       strength in disguise. The reader is deciding whether to trust the rest
+       of the page, and this is the paragraph that earns it. -->
+  <p class="tradeoff">{{TRADEOFF}}</p>
+
+  <!-- CTA bottom-right, rule 21. A question proposing a short conversation,
+       not a request for a meeting to "discuss our solutions". -->
+  <div class="cta">
+    <strong>{{CTA}}</strong>
+  </div>
+
+</body>
+</html>

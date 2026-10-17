@@ -1,0 +1,215 @@
+{
+  "updated": "2026-10-16",
+  "priorities": [
+    "Review and update priorities in project-state.json"
+  ],
+  "notes": "40 SCs discovered from specs. Organize into phases as project evolves.",
+  "phases": [
+    {
+      "name": "Initial Implementation",
+      "scs": [
+        {
+          "id": "SC-1",
+          "what": "Short version 75-125 words and long version under 200 words both generated",
+          "done": false
+        },
+        {
+          "id": "SC-2",
+          "what": "Three paragraphs maximum",
+          "done": false
+        },
+        {
+          "id": "SC-3",
+          "what": "Opener uses a timeline hook rather than a problem hook",
+          "done": false
+        },
+        {
+          "id": "SC-4",
+          "what": "Exactly one CTA, and it is not a scheduling link",
+          "done": false
+        },
+        {
+          "id": "SC-5",
+          "what": "The attached one-pager is referenced in one sentence",
+          "done": false
+        },
+        {
+          "id": "SC-6",
+          "what": "Opener cites an externally observable signal",
+          "done": false
+        },
+        {
+          "id": "SC-7",
+          "what": "Body states a point of view rather than product features",
+          "done": false
+        },
+        {
+          "id": "SC-8",
+          "what": "The POV corrects a misunderstanding or connects unconnected dots",
+          "done": false
+        },
+        {
+          "id": "SC-9",
+          "what": "Peer reference names one company and one metric",
+          "done": false
+        },
+        {
+          "id": "SC-10",
+          "what": "Peer reference differs across personas at the same account",
+          "done": false
+        },
+        {
+          "id": "SC-11",
+          "what": "Reading level is 3rd grade or simpler",
+          "done": false
+        },
+        {
+          "id": "SC-12",
+          "what": "Email matches the owning AE's voice profile when one exists",
+          "done": false
+        },
+        {
+          "id": "SC-13",
+          "what": "Draft passes every line of the AI-tell checklist",
+          "done": false
+        },
+        {
+          "id": "SC-14",
+          "what": "Follow-up cadence of 3-7-7 days is included",
+          "done": false
+        },
+        {
+          "id": "SC-15",
+          "what": "No ask exceeds 20 minutes",
+          "done": false
+        },
+        {
+          "id": "SC-16",
+          "what": "Renders to exactly one page",
+          "done": false
+        },
+        {
+          "id": "SC-17",
+          "what": "Copy is between 200 and 350 words",
+          "done": false
+        },
+        {
+          "id": "SC-18",
+          "what": "Sections follow Environment, Insight, Convergence, Path Forward",
+          "done": false
+        },
+        {
+          "id": "SC-19",
+          "what": "A convergence thesis connects 2-3 named initiatives",
+          "done": false
+        },
+        {
+          "id": "SC-20",
+          "what": "Key terms are bolded inline rather than placed in cards",
+          "done": false
+        },
+        {
+          "id": "SC-21",
+          "what": "Headline sits top-left and next steps sit bottom-right",
+          "done": false
+        },
+        {
+          "id": "SC-22",
+          "what": "Credibility signals are logos or named references, not stock photography",
+          "done": false
+        },
+        {
+          "id": "SC-23",
+          "what": "Page contains both a convergence callout and a capability table",
+          "done": false
+        },
+        {
+          "id": "SC-24",
+          "what": "Margins and spacing leave the page uncrowded",
+          "done": false
+        },
+        {
+          "id": "SC-25",
+          "what": "No date stamp or file name appears in the header or footer",
+          "done": false
+        },
+        {
+          "id": "SC-26",
+          "what": "Text reads from the buyer's perspective throughout",
+          "done": false
+        },
+        {
+          "id": "SC-27",
+          "what": "Exactly one objection is pre-answered",
+          "done": false
+        },
+        {
+          "id": "SC-28",
+          "what": "Every claim carries a number or a named company",
+          "done": false
+        },
+        {
+          "id": "SC-29",
+          "what": "One honest limitation is stated plainly",
+          "done": false
+        },
+        {
+          "id": "SC-30",
+          "what": "PDF opens with no login, form, or gate",
+          "done": false
+        },
+        {
+          "id": "SC-31",
+          "what": "Two or three initiatives are framed as one challenge",
+          "done": false
+        },
+        {
+          "id": "SC-32",
+          "what": "A convergence callout box is visually dominant",
+          "done": false
+        },
+        {
+          "id": "SC-33",
+          "what": "A two-column diagram shows the product bridging the initiatives",
+          "done": false
+        },
+        {
+          "id": "SC-34",
+          "what": "Customer initiatives are named by their internal program names",
+          "done": false
+        },
+        {
+          "id": "SC-35",
+          "what": "AI-tell checklist completed with no unresolved items",
+          "done": false
+        },
+        {
+          "id": "SC-36",
+          "what": "Creepy-line check finds no internal-systems data",
+          "done": false
+        },
+        {
+          "id": "SC-37",
+          "what": "Competitor-swap test fails, proving the POV is not a brochure",
+          "done": false
+        },
+        {
+          "id": "SC-38",
+          "what": "Print preview shows no bleed onto a second page",
+          "done": false
+        },
+        {
+          "id": "SC-39",
+          "what": "Email is readable on mobile without scrolling",
+          "done": false
+        },
+        {
+          "id": "SC-40",
+          "what": "One-pager stands alone when read without the email",
+          "done": false
+        }
+      ]
+    }
+  ],
+  "sessions": []
+}

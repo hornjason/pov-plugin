@@ -1,0 +1,16 @@
+{
+  "name": "pov-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Code plugin — research-backed customer POV one-pagers and outreach emails",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "rungate": "0.5.0",
+    "typescript": "^5.6.0"
+  }
+}
