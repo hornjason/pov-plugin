@@ -15,6 +15,26 @@ jobs:
         with:
           bun-version: latest
 
+      # The named-customer half of the PII gate reads `.pii-identities.local.json`,
+      # which is gitignored — the names are the thing this repo must not publish, so
+      # they are not in it and will never be in CI either.
+      #
+      # Its ABSENCE is a refusal and not a skip (IDENT-1), which is deliberate and is
+      # why this step exists rather than the gate being softened to pass without a
+      # list. A scan that did not look reports the same empty violation list as a repo
+      # with nothing to find, so "no list" has to be loud somewhere, and the choice is
+      # between loud-and-blocking here or silent everywhere.
+      #
+      # So CI runs with the tracked example, whose names are fictional. That is an
+      # honest reduced measurement, not a bypass: the structural half — every email at
+      # a non-reserved domain, LinkedIn URLs, Drive and Docs ids — runs at full
+      # strength and is the half that catches a leak nobody wrote a name for. The
+      # identity half runs against 3 fictional names here and against the real list on
+      # the machine where commits are actually made, which is where a customer name
+      # would enter the repo in the first place.
+      - name: Provide the fictional identity list CI scans against
+        run: cp .pii-identities.local.json.example .pii-identities.local.json
+
       # The portable gate runs first and needs no dependencies, so a PII leak
       # fails the build even if installation breaks.
       - name: PII and manifest gate
