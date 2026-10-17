@@ -186,23 +186,75 @@ Measured 2026-10-16. Update this section whenever a claim moves.
 
 | Claim | Standing | What is in the way |
 |---|---|---|
-| 1 — a stranger can install it | **untested** | Never pushed; no cold install has been run |
-| 2 — end to end against a dashboard | **untested** | Port documented as 3000; it is 7777 |
-| 3 — consistent look and feel | **false** | No template ships. 1,317 lines of real design work sit unported in `~/Projects/POV/reference/` |
-| 4 — refuses honestly | **partly true** | The no-dashboard refusal is specified and good. Multiple-dashboard disambiguation does not exist |
-| 5 — nothing private ships | **true (tree)** | Git history still predates the split; squash before the first push |
+| 1 — a stranger can install it | **true, measured** | Nothing. See the run below |
+| 2 — end to end against a dashboard | **untested** | No POV has been generated. The port is fixed and discovery is specified, which is the part that was wrong — but that is a prerequisite, not the claim |
+| 3 — consistent look and feel | **mechanism true, evidence absent** | The template ships and the override works. Nobody has put two renders side by side |
+| 4 — refuses honestly | **specified, not exercised** | Both refusals are written and tested as prose. Neither has been driven against a live dashboard |
+| 5 — nothing private ships | **true, tree and history** | Nothing. 0 occurrences across the complete patch history |
 
-Three of five are false or untested, and the repo has never been pushed. That is
-the honest reading, and it is why the cold install is the next milestone rather
-than the last step.
+Two of five are true, and the three that are not are honest about which half
+of themselves is missing. Claims 3 and 4 both have their mechanism built and
+their evidence outstanding, and those are different things — a template that
+ships is not two renders compared, and a refusal that is specified is not a
+refusal that has fired.
 
-**On claim 5's qualifier.** The working tree is clean and the gate proves it.
-The *clone* is not: the three commits behind this one carry the old gate, and
-`git log -p` is what a reader actually gets. A tree-scanning gate cannot see
-that, and nothing about a green suite would tell you. The repo has never been
-pushed, so the fix is free — squash to a single initial commit before creating
-the remote — but it has to happen before the push and not after, because a
-public commit is public the moment it lands.
+### Claim 1, measured 2026-10-17
+
+Run, not described. Against an isolated `CLAUDE_CONFIG_DIR`, so this is a
+cold machine's result rather than this machine's accumulated state:
+
+```
+git clone https://github.com/hornjason/pov-plugin.git   ->  15 entries
+claude plugin marketplace add hornjason/pov-plugin      ->  OK pov-marketplace
+claude plugin install pov@pov-marketplace               ->  OK enabled, v0.1.0
+claude -p "list your skills"                            ->  pov:pov, ...
+```
+
+No credential, no API key, no MCP server, nothing asked for. The installed
+tree carries no `hooks/`, no `.mcp.json` and no `bin/`, and its
+`package.json` declares only `test` and `typecheck` — no lifecycle script of
+any kind, so nothing in it runs at install time.
+
+**One variable this run did not isolate.** `claude plugin marketplace add`
+cloned over SSH, because this machine is configured for it. A colleague with
+no GitHub SSH key takes the HTTPS path, which is a different code path and is
+untested. That is the one thing standing between this measurement and the
+claim's own words, *"no account on anything"*.
+
+### Claim 5, and why the clone needed more than the tree
+
+The working tree was clean once the gate was split, and the gate proved it.
+The *clone* was not. Three commits carried the old pattern list, and the
+commit that REMOVED the names reproduced every one of them in its own diff —
+`git log -p` is what a reader actually gets, a tree-scanning gate cannot see
+it, and a green suite says nothing about it.
+
+The repo had never been pushed, so the fix was free: squashed to a single
+root commit before the remote existed. Verified by walking every commit
+reachable from `main` and grepping the complete patch history — 0
+occurrences. The development history is kept locally at
+`refs/archive/pre-sanitization-history`, which no ordinary push transfers.
+
+### What is still in the way of claim 2, and why it was not simply run
+
+The port was wrong and is fixed, and the correction is sharper than "3000
+should have said 7777". Measured on the development machine:
+
+| URL | Response |
+|---|---|
+| `localhost:7777/api/accounts` | `200`, `{customers: ...}` |
+| `localhost:7776/api/accounts` | `200`, `{customers: ...}` |
+| `localhost:3000/` | `200`, `X-Powered-By: Express` |
+
+`3000` was never a dead port that would have failed loudly. **A different
+application is listening there and answering**, so a probe asking only "did
+something respond" would have connected to it and proceeded. And the two
+dashboards return an identical response shape — claim 4's second row as a
+measurement rather than a worry.
+
+What remains is one full run, deliberately not done here: the last step
+publishes to a real customer's Drive folder, which is not an action to take
+unattended. It also settles the open PDF question.
 
 ## The order the claims have to be earned in
 

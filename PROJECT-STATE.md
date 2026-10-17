@@ -3,7 +3,7 @@ doc-type: project-state
 status: in-progress
 owner: jason
 updated: 2026-10-17
-stop-point: Claims 3, 4 and 5 earned. Waiting on rungate 0.5.0 to reach npm, then re-scaffold, squash history, create the remote and cold-install.
+stop-point: Published and installable. Claims 1 and 5 true and measured. Remaining: one end-to-end run against a live dashboard (claim 2), two renders compared by eye (claim 3), and the HTTPS clone path for a colleague with no SSH key.
 ---
 
 # pov-plugin — Project State
@@ -31,15 +31,18 @@ from a local working directory, which stays private and was not modified.
 
 ### Not done
 
-- [ ] **Re-scaffold against rungate 0.5.0** — waiting on the registry
-- [ ] **Unpark `test/scaffold-conformity.test.ts.blocked`** and uncomment the gates step
-- [ ] **Squash history before the first push** — see the warning below
-- [ ] **Push to GitHub** (`hornjason/pov-plugin`) — the repo has no remote at all yet
-- [ ] **Cold install from a clean machine** (claim 1)
-- [ ] **Two renders compared by a human** (claim 3 proper — the mechanism ships, the
-      evidence does not exist)
-- [ ] **One end-to-end run against a live dashboard** (claim 2), which also settles the
-      open question of whether anything renders the PDF the spec describes
+- [ ] **One end-to-end run against a live dashboard** (claim 2). Deliberately not
+      done unattended — the last step publishes to a real customer's Drive folder.
+      It also settles whether anything renders the PDF the spec describes.
+- [ ] **Two renders compared by eye** (claim 3). The template ships and the override
+      works; the evidence that two POVs look alike does not exist and is not
+      automatable.
+- [ ] **Drive the two refusals against a live dashboard** (claim 4). Both are written
+      and tested as prose. Neither has fired in anger — and both dashboards are up
+      right now, so the several-dashboards case is reproducible on demand.
+- [ ] **The HTTPS clone path.** The cold install succeeded but cloned over SSH,
+      because this machine is configured for it. A colleague with no GitHub SSH key
+      takes a different path.
 
 ## Before the first push: the history is not clean
 
