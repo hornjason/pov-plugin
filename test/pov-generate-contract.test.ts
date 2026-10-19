@@ -197,7 +197,18 @@ describe("The spec carries the criteria the retyping dropped", () => {
   });
 
   test("SPEC-4: the Process Rules group exists", () => {
-    expect(SPEC).toContain("### Process (SC-41 to SC-43)");
+    // Matched on the property — a heading that groups SC-41 to SC-43 — and
+    // not on one verbatim rendering of it. This copy is now DERIVED, so the
+    // canonical spec's wording wins; it says "Process Rules (SC-41 through
+    // SC-43)" where the retyped copy said "Process (SC-41 to SC-43)".
+    //
+    // The old assertion would have gone red on that, and the red would have
+    // said nothing about the thing it exists for. The group being DROPPED is
+    // the defect this test was written for — the retyping lost it, taking
+    // SC-43 and with it the only grader for rule 10b. A test that also fails
+    // when "through" replaces "to" is a test somebody fixes by editing the
+    // string, which is how a real signal gets trained out of a suite.
+    expect(SPEC).toMatch(/^#+ Process[^\n]*SC-41[^\n]*SC-43/m);
   });
 
   test("SPEC-5: rule 10b names the endpoint serving the voice profile", () => {
