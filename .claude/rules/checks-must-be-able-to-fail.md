@@ -1,6 +1,10 @@
 ---
 description: A check is only worth what it fails on — prove a guard can go red before trusting it green
 generated-sha: 760e110af6d1d700
+doc-type: reference
+status: active
+owner: jason
+updated: 2026-10-19
 ---
 
 ## The rule
@@ -266,3 +270,101 @@ these two repos, and the first where the fix is what makes the documentation
 of the fix possible.
 
 Neither mutation is left in the tree; both were run and reverted.
+
+## A skill rewritten under ADR-051, and the checks pinned to the old one (#3)
+
+`SKILL.md` described the dashboard generating the POV. ADR-051 moved the
+writing into the consumer's own Claude Code, which is three endpoints instead
+of one and a step the skill did not previously have. The rewrite landed and
+**ten cases went red, all of them `expect(received).toBeGreaterThan(0)`** —
+`section()` slices the document by exact heading text and returns `""` when
+the heading is gone, so every caller failed its own vacuity guard rather than
+its subject.
+
+That is the guard working, and it is worth one line on why the guard is there:
+without `expect(step.length).toBeGreaterThan(200)` ahead of each assertion,
+ten claims about a renamed section would have passed over an empty string.
+A slice that failed to find its section contains nothing, and "contains
+nothing" is indistinguishable from "contains no violation".
+
+### What the rewrite is checked for that it was not before
+
+The load-bearing decision in ADR-051 is a **negative** one: the skill reads
+the spec to write well and never to grade. Nothing checked it, and it is the
+first thing a tired reader drops as a round trip nobody needs — so the
+`SELF-*` block exists, and K1-K3 and K5 are its rows.
+
+### Baseline and rows
+
+Baseline `bun test`: **144 pass / 0 fail / 38 todo**, read before the mutant
+rows. Every mutation applied by a harness that ASSERTS its anchor appears
+exactly once and aborts on a no-op edit, restored from a pristine copy
+immediately after its run; the tree was confirmed clean afterwards and the
+baseline re-measured at 144/0.
+
+| # | What I broke | Red |
+|---|---|---|
+| K1 | the self-grading refusal deleted from the division of labour | **1 of 144** |
+| K2 | step 5 stops naming the scoring endpoint | **1 of 144** |
+| K3 | the unmeasured-is-not-a-pass instruction removed | **1 of 144** |
+| K4 | the capability probe aimed at the retired `/pov/generate` | **2 of 144** |
+| K5 | step 7 stops saying the publish endpoint re-scores | **1 of 144** |
+| K6 | the support-case filter removed from the writing step | **1 of 144** |
+| K7 | a re-tightened one-pager is no longer re-scored | **1 of 144** |
+| K8 | `sourceUrls` dropped from the documented context body | **1 of 144** |
+
+Inputs on which mutant and original differ, named rather than assumed:
+
+- **K1** — a reader following the skill. The original refuses to score its
+  own work and posts to `/pov/score`; the mutant reads the spec, writes, and
+  checks itself against the prose it wrote from. One instrument used twice.
+- **K4** — a dashboard built before ADR-051. It serves `/pov/generate` and
+  none of the three endpoints this skill needs, so the mutant's probe reports
+  **capable** on precisely the machine that cannot do the job. The two reds
+  are not double counting: `CAP-1` says the probe asks the wrong question and
+  `GEN-8` says a retired call survived into the steps.
+- **K7** — a one-pager tightened to fit one page. The original re-scores
+  before publishing; the mutant publishes a document whose score describes an
+  earlier draft, and `/pov/publish` re-scores and returns a `422` the caller
+  has no explanation for.
+- **K8** — a user who supplied a deck. The two documents disagree about
+  whether the field exists, so whichever the next editor is reading wins.
+
+### Two instrument failures, both caught by output that did not look right
+
+**`GEN-8` grepped the steps for `/pov/generate` and went red against correct
+source.** Step 2 says *"Probe `/pov/context` and not `/pov/generate`"* — the
+sentence that makes the capability probe right — and a scanner cannot tell
+that mention from a call. This repo has now recorded that trap for a date, a
+colour, a criterion id, a call form and a provider name; this is the sixth,
+and the first where the corpus is the instruction being documented. The case
+matches `{name}/pov/generate`, which only the URL template produces, and
+carries a positive control so "contains no call" cannot be satisfied by a
+slice holding no calls at all.
+
+**`PROVIDER-2` reported NO MATCH on a fixture its own pattern plainly
+matches.** The pattern is `/g/`, `expect().toMatch()` goes through `.test()`,
+and `.test()` advances `lastIndex` — so one shared regex object made the
+second assertion resume from wherever the first stopped. A negative control
+failing while the thing it controls is fine is the tell; the pattern is built
+fresh per use now.
+
+Both are the same family as the zsh rows in the sibling repo: a confident
+wrong measurement produced by the instrument rather than the subject. The
+cheap defence is the one that worked here — read the failure text, not the
+count.
+
+### And the paragraph above was a finding before it was a paragraph
+
+The first draft of this section quoted that fixture verbatim — three provider
+names in prose explaining a gate that scans the tree for provider names. The
+suite went red on the commit documenting the trap, written by someone who had
+just written the trap's own test.
+
+So the sixth and seventh instances are one page apart, and the second was
+introduced by documenting the first. The rule this repo keeps restating is
+*write the explanation without quoting the thing it governs*, and the
+evidence that it is hard to follow is that the sentence you are reading had
+to be rewritten to obey it. Only the check said so.
+
+None of the mutations is left in the tree; all eight were run and reverted.

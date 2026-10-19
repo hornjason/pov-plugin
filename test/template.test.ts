@@ -70,7 +70,9 @@ describe("A one-pager template ships", () => {
   });
 
   test("TPL-4: the skill reads the template and offers the override", () => {
-    const step = section(SKILL, "### 4. Render", /\n### /);
+    // ADR-051 renumbered the steps — the dashboard no longer writes, so the
+    // skill gained a writing step ahead of this one. Render is step 6.
+    const step = section(SKILL, "### 6. Render", /\n### /);
     expect(step.length).toBeGreaterThan(300);
     expect(step).toContain("${CLAUDE_PLUGIN_ROOT}/templates/one-pager.html.tmpl");
     expect(step).toContain(OVERRIDE_ENV);
