@@ -139,6 +139,28 @@ describe("ADR-051 — the skill writes, the dashboard supplies facts and grades"
     }
   });
 
+  test("GEN-4b: the three fields the first live run got wrong are pinned", () => {
+    // Measured, not hypothesised. The first real run of this skill sent
+    // `numbers` as a tile array. The dashboard renderer calls
+    // `numbers.trim()`, the TypeError is swallowed into an empty one-pager,
+    // every one-pager criterion reported `unmeasured`, and the email
+    // criteria carried the artifact to `passed: true` at 80. A gate saying
+    // yes about a page it never read.
+    //
+    // The shape is therefore not a documentation detail, it is the thing
+    // standing between a model and an ungraded customer document — so it is
+    // asserted rather than left to whoever reads the example block.
+    const step = section(SKILL, WRITE_STEP, /\n### /);
+    expect(step.length).toBeGreaterThan(400);
+    expect(step).toContain("statTiles");
+    expect(step).toContain('"pathForward": [{"title"');
+    // `numbers` is a string. The assertion is on the warning rather than on
+    // the JSON line, because the JSON line is what was wrong last time and a
+    // reader who only matches it learns nothing about why.
+    expect(step).toMatch(/numbers.{0,80}string/is);
+    expect(step).not.toContain('"step": "..."');
+  });
+
   test("GEN-5: the API reference documents all three as routes", () => {
     for (const route of [
       "/api/customer/:name/pov/context",

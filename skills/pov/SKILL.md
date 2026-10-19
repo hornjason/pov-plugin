@@ -238,16 +238,39 @@ Produce a single JSON object — this exact shape, because it is what
 {
   "onePager": {
     "title": "...", "subtitle": "...",
-    "environment": "...", "insight": "...",
-    "convergence": "...", "numbers": [{"value": "...", "label": "...", "attribution": "..."}],
+    "environment": "...", "insight": "...", "convergence": "...",
+    "numbers": "markdown STRING, not an array",
+    "statTiles": [{"value": "...", "label": "...", "attribution": "..."}],
     "tradeoff": "...", "diagram": {"from": "...", "to": "..."},
-    "pathForward": [{"step": "...", "detail": "..."}]
+    "pathForward": [{"title": "...", "detail": "..."}]
   },
   "emails": [
     {"recipientName": "...", "role": "...", "subject": "...", "body": "..."}
   ]
 }
 ```
+
+**Three fields are easy to get wrong, and getting them wrong is quiet.**
+
+| Field | Must be | Not |
+|---|---|---|
+| `numbers` | a markdown **string** | an array of tiles |
+| `statTiles` | the tile array, `{value, label, attribution}` | folded into `numbers` |
+| `pathForward` | `[{title, detail}]` | `[{step, detail}]` |
+
+The first live run of this skill sent tiles as `numbers`. The dashboard's
+renderer calls `numbers.trim()`, an array has no `trim`, and the resulting
+`TypeError` is caught and turned into an empty one-pager — so every
+one-pager criterion came back `unmeasured`, the email criteria carried the
+score to **80 with `passed: true`**, and the document the customer would
+receive was never graded at all. The gate said yes about a page it had not
+read.
+
+So: if `/pov/score` reports the one-pager as empty and you know you sent one,
+**that is this bug and not an empty one-pager.** Check these three fields
+before you change a word of the copy. Dashboard issue #1682 is open to make
+that case a refusal rather than a silent `unmeasured`; until it lands, the
+`unmeasured` is the only signal you get.
 
 What to hold in mind while writing, each of them a criterion the gate will
 check in a moment:

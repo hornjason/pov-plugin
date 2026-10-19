@@ -158,6 +158,39 @@ than to the example beside it. Two things turn it red: neutralising the brand
 again, and the house style genuinely changing. The second deserves a
 deliberate edit, which is the point.
 
+**Two renders exist as of 2026-10-19, and they are waiting on a human.**
+Northwind Logistics and Meridian Health Systems, both written through the
+ADR-051 flow — context pulled from a live dashboard, written in session,
+scored at **90 / passed** with the peer citation clean and no AI tells, filled
+into the shipped template without touching the CSS, and rendered with headless
+Chrome. Both **one page**, both with a real text layer, PDFs at
+`/tmp/pov-probe/renders/{northwind,meridian}.{html,pdf,png}`.
+
+Structurally they are the same document: same type scale, same section order,
+same red-bordered convergence callout, same three-panel bridge, same peer
+table, same italic trade-off above the same ruled CTA. The template is doing
+the work rather than the rules alone, which is the mechanism claim 3 is about.
+
+**That is not the claim, and this section already says why.** *"A human looks
+at them. There is no automated substitute for this one"* — so the claim stays
+**evidence pending** until Jason has. Three things to look at, each a question
+this file cannot answer for itself:
+
+- **The brand is nearly absent.** The only red on the page is the convergence
+  callout's border and tint. The bridge's middle panel — the one naming the
+  product — renders **black**. On a POV from Red Hat that reads like a
+  monochrome document with one accident of colour.
+- **Both pages stop around 55% down.** One page is satisfied with room to
+  spare. Rule 24 calls whitespace functional, and this much trailing space
+  reads as a short document rather than a composed one.
+- **The template has no stat tiles.** Decision 1 of the 2026-10-18 plan kept
+  them, with attribution required, and the validated reference artifact
+  carries three. The artifact JSON now has a `statTiles` field, the dashboard
+  PDF renderer uses it, and **the shipped plugin template has nowhere to put
+  it** — so the tiles are written and dropped. That is a divergence between
+  the template and the spec, not a rendering bug, and which one moves is a
+  design decision rather than a fix.
+
 ### Claim 4 — It refuses honestly
 
 The failure modes are more common than the success path, and a confident wrong
@@ -180,6 +213,55 @@ folder with no warning.
 
 **How to measure it:** stop the dashboard and run it. Start two and run it.
 Ask for a customer with thin intelligence and read what it admits to.
+
+**Driven 2026-10-19 against a live dashboard built from merged main.** Six
+refusals exercised, not four — the ADR-051 capability probe added one and the
+contact registry turned out to carry two:
+
+| Driven | What fired | Verdict |
+|---|---|---|
+| nothing on the port | connection refused, `exit 7` | unambiguous |
+| two dashboards reachable | both `200`, **identical headers and response shape** | the worry is real |
+| a port that answers but is not a dashboard | `3000/` is `200`, `3000/api/accounts` is `404` | the probe path saves it |
+| a dashboard with no POV API | `404`, plain text, not JSON | distinguishable from every `400` |
+| the capability probe, empty body | `400 {"error":"intent is required"}` | capable |
+| the same probe, unknown customer | `400 {"error":"Unknown customer name"}` | and never a `404` |
+| a customer with no registered contacts | `422 NO_CUSTOMER_CONTACTS` | names the remedy |
+| contacts registered, no titles | `422 CONTACTS_HAVE_NO_TITLE`, naming the contact | a *different* remedy |
+
+Two of those are worth more than a tick.
+
+**The second row is the dangerous one and it is confirmed.** `7777` and `7776`
+answer with byte-identical headers and the same response shape. The only
+difference is the content, and "Acme Corp" is not self-evidently fixture data.
+Nothing in the response tells them apart, which is exactly why the skill asks
+rather than picks.
+
+**The untitled-contacts refusal attempted a grounded resolution first**, logged
+it, and reported `1 UNMEASURED of 1 untitled contact(s)` rather than inventing
+a job title. Three states held all the way down.
+
+### Claim 4's fourth row was false, and driving it is what found that
+
+*"An intelligence source returned nothing → report the gap in the output."*
+For the AE voice profile it did not. Measured:
+
+```
+loaded : ['signals', 'customer-data', 'research', 'case-studies']
+missing: []
+voiceContext: {"formality":"professional","wordBudget":{...},"assertionLevel":"collaborative"}
+```
+
+Byte-identical to `getVoiceTokens(null)` — every field a default. The source
+returned nothing, the consumer received a complete plausible answer, and both
+provenance lists stayed silent. Under ADR-051 the skill is told to write in
+the AE's voice **and not a house style**, and it was handed a house style it
+could not tell apart; SC-43 is *"voice profile applied"*, so the gate would
+have certified it.
+
+Filed as dashboard #1679, fixed, five mutation rows, re-measured live:
+`missing: ['ae-voice']`, `voiceContext: ''`. The claim is true now because the
+row was driven, which is the whole argument for driving them.
 
 ### Claim 5 — Nothing private is in the public repo
 
@@ -251,15 +333,24 @@ section whenever a claim moves.
 |---|---|---|
 | 1 — a stranger can install it | **true, measured** | Nothing. See the run below |
 | 2 — end to end against a dashboard | **untested, but no longer blocked** | No POV has been generated *by the plugin*. All three endpoints now exist — `pov/context`, `pov/score` and `pov/publish`, the last merged 2026-10-19 — and the skill describes the ADR-051 path. What remains is one supervised run, because the last step writes to a real customer's Drive folder |
-| 3 — consistent look and feel | **mechanism true, evidence absent** | The template ships and the override works. Nobody has put two renders side by side |
-| 4 — refuses honestly | **specified, not exercised** | Both refusals are written and tested as prose. Neither has been driven against a live dashboard |
+| 3 — consistent look and feel | **mechanism true, two renders waiting on a human** | Two POVs generated and rendered 2026-10-19, both one page, structurally identical. Jason has not looked at them yet, and the section says there is no substitute for that. Three things flagged for his eye, including a template that has nowhere to put the stat tiles the spec kept |
+| 4 — refuses honestly | **eight refusals driven, one found false and fixed** | Driven against a live dashboard 2026-10-19. Seven fired correctly. The eighth — report the gap when a source returns nothing — did not, for the AE voice profile: filed as #1679, fixed, re-measured. Row 3 (no genuine convergence thesis) is still unexercised, because it needs an account where the initiatives genuinely do not converge |
 | 5 — nothing private ships | **true, tree and history** | Nothing. 0 occurrences across the complete patch history |
 
-Two of five are true, and the three that are not are honest about which half
-of themselves is missing. Claims 3 and 4 both have their mechanism built and
-their evidence outstanding, and those are different things — a template that
-ships is not two renders compared, and a refusal that is specified is not a
-refusal that has fired.
+Two of five are true. Claim 4 is close and claim 3 is one human review away,
+and what moved them was driving them rather than reasoning about them.
+
+**That is the finding worth keeping from 2026-10-19.** Claims 3 and 4 had
+their mechanism built and their evidence outstanding, and the evidence is what
+found the bugs. Driving claim 4's four refusals surfaced a fifth the plugin's
+own skill had wrong, and a dashboard defect (#1679) in which an absent voice
+profile was substituted with house defaults and reported as no gap. Driving
+claim 3 — writing two real POVs and scoring them — surfaced a second
+dashboard defect (#1682), where a one-pager the renderer refuses is reported
+as `unmeasured` and the gate still answers `passed: true`.
+
+Neither was findable by reading. Both were one command away from anyone who
+ran the thing.
 
 ### Claim 1, measured 2026-10-17
 
