@@ -80,8 +80,8 @@ So the split is **model-vs-deterministic**, not plugin-vs-dashboard:
 
 | Concern | Runs where |
 |---|---|
-| Account intelligence, contacts, AE voice profile | dashboard, `GET /pov/context` |
-| Grounded public web research | dashboard, on Gemini |
+| Account intelligence, contacts, AE voice profile | dashboard, `POST /pov/context` |
+| Grounded public web research | dashboard — it holds the search credential |
 | **Writing the one-pager and the per-persona emails** | **the consumer's own Claude Code** |
 | Conformance gate, AI-tell check, peer-citation check | dashboard, `POST /pov/score` |
 | Template, HTML, PDF, one-page fit | the plugin |
@@ -250,7 +250,7 @@ section whenever a claim moves.
 | Claim | Standing | What is in the way |
 |---|---|---|
 | 1 — a stranger can install it | **true, measured** | Nothing. See the run below |
-| 2 — end to end against a dashboard | **untested, and the architecture changed under it** | No POV has been generated *by the plugin*. ADR-051 moved the writing into the consumer's Claude Code, so the three endpoints it now drives are the prerequisite. Two of them exist; `pov/publish` does not yet, and the skill still describes the old path |
+| 2 — end to end against a dashboard | **untested, but no longer blocked** | No POV has been generated *by the plugin*. All three endpoints now exist — `pov/context`, `pov/score` and `pov/publish`, the last merged 2026-10-19 — and the skill describes the ADR-051 path. What remains is one supervised run, because the last step writes to a real customer's Drive folder |
 | 3 — consistent look and feel | **mechanism true, evidence absent** | The template ships and the override works. Nobody has put two renders side by side |
 | 4 — refuses honestly | **specified, not exercised** | Both refusals are written and tested as prose. Neither has been driven against a live dashboard |
 | 5 — nothing private ships | **true, tree and history** | Nothing. 0 occurrences across the complete patch history |

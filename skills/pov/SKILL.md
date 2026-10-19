@@ -4,7 +4,7 @@ description: Generate an unsolicited customer POV — a one-page visual document
 doc-type: reference
 status: active
 owner: jason
-updated: 2026-10-15
+updated: 2026-10-19
 ---
 
 # POV Generator
@@ -18,26 +18,41 @@ the rules — read them, then grade against them.
 
 ## What this skill does, and what the dashboard does
 
-The dashboard generates the POV. This skill **drives it and renders the result.**
+**You write the POV.** The dashboard supplies the facts and grades the result.
 
-That division is not an arrangement of convenience — it is where the capability
-already sits. `POST /api/customer/:name/pov/generate` grounds research against
-the point of view being argued, applies the owning AE's voice profile, runs an
-AI-detection gate over every email, and publishes to the customer's Drive
-folder. Reimplementing any of that here would produce a second, worse copy that
-drifts.
+The split is **model-vs-deterministic**, not plugin-vs-dashboard, and the
+reason is the first sentence of this file's own install story. A colleague
+installs this as a Claude Code plugin. If the dashboard did the writing, every
+consumer would be a caller of one person's GCP project — for the one task
+their host already supplies a model for. A Claude Code plugin that needs its
+own model credential has misplaced a dependency it was being handed for free.
 
-What the dashboard does **not** do is make it look like anything. Its one-pager
-comes back as four markdown headings. The visual layer — the template, the HTML,
-the PDF — is this plugin's job, and it is the whole of claim 3.
+| Concern | Owner | Why it sits there |
+|---|---|---|
+| Account intelligence, signals, contacts, AE voice | dashboard | it holds the data |
+| Grounded public web research | dashboard | it holds the search credential |
+| **One-pager copy and per-persona emails** | **you, in this session** | the host is the model |
+| Conformance gate, AI-tell check, peer-citation check | dashboard | deterministic, and a *different instrument* |
+| **Template, HTML, PDF, one-page fit** | **this plugin** | the visual layer is claim 3 |
+| Publishing to Drive | dashboard | it holds the credentials and the folder |
 
-| Concern | Owner |
-|---|---|
-| Account intelligence, signals, research grounding | dashboard |
-| AE voice profile, AI-detection gate | dashboard |
-| One-pager copy and per-persona emails | dashboard |
-| Publishing to Drive | dashboard |
-| **Template, HTML, PDF, one-page fit** | **this plugin** |
+### The gate does not move with the generation, and this is the rule to get right
+
+The tempting shape is: read `POV-SPEC.md`, write the POV, check your own work
+against the same prose, report a score. **Do not do that.** A model grading
+its own output against the rules it generated from is one instrument used
+twice — it is not a check, it is the same judgement restated with more
+confidence.
+
+`POST /pov/score` is deterministic TypeScript carrying its own recorded
+mutation evidence. It is a *different* instrument, it needs no credential, and
+its verdict is the one you report — **verbatim, including `unmeasured`**.
+
+Read the spec to WRITE well. Never to grade.
+
+See `${CLAUDE_PLUGIN_ROOT}/../docs/adr/ADR-051` in the dashboard repo for the
+full decision. It supersedes the earlier arrangement in which the dashboard
+generated and this skill only rendered.
 
 ## Invocation
 
@@ -103,12 +118,12 @@ customer's real Drive folder**. Guessing wrong does not produce a visible
 error. It produces a plausible document, in the right place, built from
 fixtures, with a share link somebody sends to a customer.
 
-### 2. Confirm the dashboard can generate
+### 2. Confirm the dashboard has the three endpoints
 
-Reachable is not the same as capable. Probe the generation endpoint itself:
+Reachable is not the same as capable. Probe the context endpoint itself:
 
 ```
-POST {base}/api/customer/{name}/pov/generate   with an empty JSON body
+POST {base}/api/customer/{name}/pov/context   with an empty JSON body
 ```
 
 Read the status code, and **decide on the endpoint's answer rather than on a
@@ -117,7 +132,7 @@ version number**:
 | Response | Meaning | What to do |
 |---|---|---|
 | `400` `{"error":"intent is required"}` | capable | continue |
-| `404`, plain-text body | the dashboard predates the POV API | **refuse** |
+| `404`, plain-text body | the dashboard predates ADR-051 | **refuse** |
 | anything else | unknown | refuse, and print the status and body |
 
 **The empty body is what makes this unambiguous, and it is not an
@@ -135,10 +150,15 @@ A missing customer is a `400` on this API and never a `404`, so the two cannot
 be confused — and on a freshly installed dashboard with nothing seeded yet,
 the probe still correctly reports capable.
 
+**Probe `/pov/context` and not `/pov/generate`.** A dashboard can carry the
+old single-call API and none of the three this skill now needs — that is
+exactly what every dashboard built before ADR-051 looks like. Probing the
+endpoint you are not going to call answers a question nobody asked.
+
 The `404` refusal:
 
 ```
-This dashboard is running but has no POV API.
+This dashboard is running but has no POV context API.
 Upgrade the dashboard, then run this again.
 ```
 
@@ -151,21 +171,18 @@ ship the route disabled. Only the endpoint knows.
 The empty body is deliberate: the route validates before it does anything, so
 this costs nothing and generates nothing.
 
-### 3. Generate
+### 3. Pull the context
 
-One call does the work. Build the request body:
+```
+POST {base}/api/customer/{name}/pov/context
+{"intent": "...", "sourceUrls": [...], "personas": [...]}
+```
 
 | Field | Required | What goes in it |
 |---|---|---|
 | `intent` | **yes** | the point of view being argued, in the user's own words |
 | `sourceUrls` | no | up to 10 links to material the user supplied |
-| `personas` | no | `{name?, role}` per target; omit to let the dashboard pick |
-| `publish` | **send it** | `false` for a review run |
-
-```
-POST {base}/api/customer/{name}/pov/generate
-{"intent": "...", "sourceUrls": [...], "personas": [...], "publish": false}
-```
+| `personas` | no | `{name?, role}` per target; omit to let the dashboard resolve them from the contact registry |
 
 **`intent` is required and the request fails without it.** If the user said
 only "run a POV for Acme", they have not given you one. Ask what they want to
@@ -175,44 +192,147 @@ the user is the one holding the context that makes it real.
 
 **`sourceUrls` is how the user brings their own evidence** — a deck, a call
 summary, a press release, an architecture doc. The dashboard fetches and
-grounds against them. Mention this if the user seems to be working from
-something you cannot see.
+grounds the research against them. Mention this if the user seems to be
+working from something you cannot see.
 
-**`publish` must be sent explicitly, and this is the dangerous one.** The route
-reads `body.publish !== false`, so **omitting the field publishes.** A run
-meant for review writes to a real customer's Drive folder, in the right place,
-with a share link — and nothing about it looks like an error. Send
-`"publish": false` unless the user has asked for it to be published in this
-run.
+**This call does the grounded web research**, so it is the slow one and it is
+the only place a search credential is involved. You are not expected to
+research the customer yourself, and you should not: anything you recall rather
+than read is the invented specific rule 11 warns against.
 
-The response carries the one-pager sections and the per-persona emails. The
-dashboard has already applied the AE voice profile (rule 10b, SC-43) and run
-its AI-detection gate; read what it reports rather than re-running either.
+The response:
 
-Record which intelligence sources returned nothing. Gaps change what you can
-claim, and rule 29 wants one stated plainly.
+| Field | What it is |
+|---|---|
+| `personas` | who to write to — name, role, trust |
+| `signalContext`, `customerDataContext` | the account's own intelligence |
+| `researchContext` | grounded public research, with citations |
+| `teamContext` | the account team, for named participants |
+| `voiceContext` | the owning AE's voice profile (rule 10b, SC-43) |
+| `caseStudies`, `caseStudyContext` | the Verified Case Study Registry |
+| `loaded`, `missing` | which sources answered and which did not |
 
-### 3b. Check the thesis and the references the dashboard came back with
+**Read `missing` and carry it through to the output.** Gaps change what you can
+claim, and rule 29 wants one stated plainly. A POV that reads complete over a
+source that returned nothing is the failure this field exists to prevent.
 
-The dashboard argues the convergence; you grade it. Two things to read before
-rendering anything, because both are cheaper to fix now than after a PDF
-exists:
+#### Two refusals this call can return, and they are different
 
-- **The convergence thesis (rules 19, 31, 34).** Does it connect 2-3
-  initiatives the customer treats as separate conversations, named by their
-  internal program names? If it has produced a theme rather than a thesis, or
-  named nothing, say so. A forced convergence reads worse than none.
+| Code | Means | Remedy |
+|---|---|---|
+| `422 NO_CUSTOMER_CONTACTS` | nobody is registered for this account | run contact discovery in the dashboard |
+| `422 CONTACTS_HAVE_NO_TITLE` | contacts exist and their roles are unknown | the dashboard attempts one grounded resolution before raising this; if it still fails, the named contacts need titles |
+
+Report whichever came back, by name. They are two codes because they have two
+remedies, and collapsing them sends the user to the wrong one.
+
+### 4. Write the POV
+
+This is the step that used to be a server call. **You write it now**, from the
+context above and the rules in `${CLAUDE_PLUGIN_ROOT}/specs/POV-SPEC.md`.
+
+Produce a single JSON object — this exact shape, because it is what
+`/pov/score` and `/pov/publish` read:
+
+```json
+{
+  "onePager": {
+    "title": "...", "subtitle": "...",
+    "environment": "...", "insight": "...",
+    "convergence": "...", "numbers": [{"value": "...", "label": "...", "attribution": "..."}],
+    "tradeoff": "...", "diagram": {"from": "...", "to": "..."},
+    "pathForward": [{"step": "...", "detail": "..."}]
+  },
+  "emails": [
+    {"recipientName": "...", "role": "...", "subject": "...", "body": "..."}
+  ]
+}
+```
+
+What to hold in mind while writing, each of them a criterion the gate will
+check in a moment:
+
+- **The convergence thesis (rules 19, 31, 34).** Connect 2-3 initiatives the
+  customer treats as separate conversations, named by their internal program
+  names from `signalContext`. A theme is not a thesis. A forced convergence
+  reads worse than none — if the initiatives do not converge, say so to the
+  user rather than inventing a bridge.
 - **Peer references (rule 9).** One named company and one concrete metric per
-  persona, different per persona at the same account, from the registry in the
-  spec. Verify each URL still resolves — these rot.
+  persona, **different per persona at the same account**, taken only from
+  `caseStudies`. The company name must be the anchor text of a markdown link
+  to its `sourceUrl` — `[Company](url)`, never bold and never plain. Quote
+  only the figures listed under that peer; any other number attributed to them
+  blocks publication.
+- **Nothing from internal systems (rule 36).** No ticket counts, no
+  subscription numbers, no node or VM inventory, no pipeline values. The
+  customer's own telemetry read back to them is the creepy line, and the gate
+  checks for it by name.
+- **The AE's voice** from `voiceContext`, not a house style.
+- **Short sentences and plain words.** The readability gate caps the email at
+  Flesch-Kincaid grade 16 and reports both levers when it fails.
+- **Prose that does not read as machine-written.** Work through
+  `${CLAUDE_PLUGIN_ROOT}/skills/pov/references/humanization.md` while drafting
+  the emails, not afterwards. It is the cheapest place to apply it, and the
+  deterministic AI-tell check in step 5 will report what survives — em-dash
+  pairs, `Moreover`/`Furthermore`/`Additionally` openers, uniform sentence
+  length, "it's not just X, it's Y".
 
-### 4. Render
+One known source of a rule-36 violation is mechanical rather than a judgement
+call: the dashboard's recommendation headlines are built as
+`Case <number>: <summary>`, so a support case number can travel into anything
+derived from them. Search your drafts for `Case` followed by digits before you
+send them anywhere.
+
+Write it, then stop. **Do not score it yourself.**
+
+### 5. Score it, and revise against what comes back
+
+```
+POST {base}/api/customer/{name}/pov/score
+{"artifact": "<the JSON object from step 4, as a string>"}
+```
+
+The response is the full card — every criterion, including the ones that
+pass, so it can be read as *what was checked* rather than only *what broke*:
+
+| Field | What it is |
+|---|---|
+| `findings` | one row per criterion: `sc`, `status`, `detail` |
+| `passed` | the verdict |
+| `score` | the number |
+| `peerValidation` | the verdict on your peer citation against the registry |
+| `aiTells` | the deterministic AI-tell violations in the email bodies |
+
+**Revise against the `detail`, which names the location and the number.**
+`SC-17: 396 words, band 200-350` tells you what to change; a bare criterion
+id does not, and three attempts spent re-guessing is what this field exists
+to prevent.
+
+**At most three passes.** If it still fails, **report the remaining findings
+and stop. Do not publish.** Three attempts that have not closed a criterion
+mean the criterion needs a human, and a fourth attempt is a model guessing at
+a number it has already seen three times.
+
+Three statuses, and the third is not a pass:
+
+- `pass` — checked, and clean.
+- `fail` — checked, and wrong. Revise.
+- `unmeasured` — **the criterion could not be checked.** Report it in those
+  words. `SC-1b` is permanently unmeasured because the artifact carries one
+  body per persona and the criterion asks for two variants; it does not block.
+  Never summarise an `unmeasured` as a pass, and never let it disappear into a
+  score.
+
+Report `score` and `passed` **as the endpoint returned them.** Do not round
+them, do not soften them, and do not add an assessment of your own alongside.
+
+### 6. Render
 
 **Start from the shipped template. Do not compose the HTML from the rules.**
 
-The dashboard returns the one-pager as four markdown sections — Environment,
-Insight, Convergence, Path Forward. It has no opinion about how they look.
-Turning those into the document is this step, and it is the whole of claim 3.
+The one-pager you wrote in step 4 is structured content — Environment,
+Insight, Convergence, Path Forward — with no opinion about how it looks.
+Turning that into the document is this step, and it is the whole of claim 3.
 
 Read the template, in this order of precedence:
 
@@ -234,9 +354,6 @@ claim 3 names, and the template is the whole defence against it.
 If a placeholder has no good answer, that is a finding about the POV, not a
 licence to delete the section. Say so in the output.
 
-Check it is one page. If it bleeds, tighten the copy — do not shrink the font
-and do not edit the stylesheet.
-
 **Changing the look by showing it an example.** If the user supplies a document
 or slide and says "make it look like this", do not hand-edit the shipped
 template — derive a new one and write it to `.pov/template.html.tmpl`, so the
@@ -255,67 +372,60 @@ artifact "a PDF rendered from HTML" and for a long time nothing here named a
 tool that renders one — an instruction nobody can follow is not an
 instruction.
 
-Change the copy. Do not change the CSS, the section order, or the markup. The
-type scale, the colour, the callout treatment and the bridge diagram are the
-reason two POVs for two customers look like one product, and they are the
-first thing to drift if each run rebuilds the page from rules 16-34. Both
-documents can honour every rule and still share no visual DNA — that is the
-failure claim 3 names, and the template is the whole defence against it.
+Check it is one page. If it bleeds, **tighten the copy** — do not shrink the
+font and do not edit the stylesheet. A re-tightened one-pager has changed, so
+send it back through step 5 before publishing: the artifact that gets scored
+has to be the artifact that gets published, or the score describes a document
+nobody has.
 
-If a placeholder has no good answer, that is a finding about the POV, not a
-licence to delete the section. Say so in the output.
+### 7. Publish
 
-Follow rules 16-34 for the CONTENT that goes in the placeholders: narrative
-arc, bold inline terms, one idea in the convergence callout, one honest
-trade-off, no date stamp. Render HTML, then PDF.
+**Only when the user has asked for it in this run.** Publishing writes to a
+real customer's Drive folder with a share link, and nothing about a wrong one
+looks like an error.
 
-Check it is one page. If it bleeds, tighten the copy — do not shrink the font
-and do not edit the stylesheet.
+```
+POST {base}/api/customer/{name}/pov/publish
+{"artifact": "<the same JSON string you scored>", "pdfBase64": "<the rendered PDF>"}
+```
 
-### 5. Self-review before publishing
+| Response | Means |
+|---|---|
+| `200` with `written: true` and a `docUrl` | published |
+| `422` with a `refusal` naming the gate | **it refused** — report which gate and why |
 
-Work through `${CLAUDE_PLUGIN_ROOT}/skills/pov/references/humanization.md` line by line,
-then the quality gates in the spec (rules 35-40). Fix what fails. Report what you fixed.
+**The endpoint re-scores. It does not take your word for it**, and that is
+deliberate rather than distrustful: a caller-supplied verdict means the gate
+exists and never runs. So a `422` here after a clean step 5 is information,
+not a glitch — the usual cause is that the artifact changed between scoring
+and publishing, which is the one-page re-tighten above.
 
-This step is not optional and it is not a formality. Report the result honestly — if a
-gate fails and you could not fix it, say which one.
-
-**The creepy-line check is not a judgement call (rule 36, SC-36).** Internal
-systems data must not reach the output, and one source of it is known and
-mechanical: the dashboard's recommendation headlines are built as
-`Case <number>: <summary>`, so a support **case** number can travel into
-anything derived from them. Strip every one. Search the drafts for `Case`
-followed by digits before you call this step done.
-
-This strip is a **backstop, not the fix** — it belongs upstream at the
-template boundary, where every consumer of that endpoint inherits it rather
-than each one having to know to look. It is tracked there. Keep it here
-anyway: rule 36 is a hard refusal for this skill whatever upstream does.
-
-Also check what the dashboard already measured rather than redoing it. Its
-AI-detection gate has a threshold and reports a score per email; read the
-score. A gate that ran and passed is evidence, and re-running it here would
-be a second opinion nobody asked for.
-
-### 6. Publish
-
-Only when the user has asked for it in this run. Re-issue the step 3 call with
-`"publish": true` — the dashboard owns the Drive path, resolves the customer's
-folder and **updates in place** rather than deleting and recreating, which is
-what keeps existing share links alive.
+**The PDF is graded too**, by the same gate, over its extracted text. A PDF
+that carries something the one-pager does not — a leaked node count, a second
+page — is refused even though the JSON passed. It has to be a render of what
+you scored, not a different document that happens to be attached.
 
 Do not reach for the Drive API directly. The dashboard holds the credentials
-and the folder resolution, and a second writer is how two copies of an
-artifact start existing.
-
-The PDF you rendered in step 4 is the artifact to publish, not the markdown
-the dashboard returned.
+and resolves the folder, and it **updates in place** rather than deleting and
+recreating, which is what keeps existing share links alive. A second writer is
+how two copies of one artifact start existing.
 
 ## Output
 
-Report: artifacts produced and where they landed, which personas got which peer
-reference, which quality gates passed, and every intelligence gap you hit. The gaps
-matter as much as the output — they tell the AE what to verify before sending.
+Report, in this order:
+
+1. **The score, verbatim** — the number, the verdict, and every criterion that
+   is not `pass`, with the endpoint's own `detail`. Including the `unmeasured`
+   ones, named as unmeasured.
+2. **What was published and where** — the Drive URL, or the refusal and its
+   gate.
+3. **Which persona got which peer reference.**
+4. **Every intelligence gap** from the context call's `missing`. These matter
+   as much as the output: they tell the AE what to verify before sending.
+
+Do not add a verdict of your own beside the gate's. If you think the artifact
+is better or worse than its score, that is worth saying in words — but the
+score is the score.
 
 ## What not to do
 

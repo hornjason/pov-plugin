@@ -64,10 +64,17 @@ real data in the response, while the last step publishes to the customer's real 
 folder. Guessing there does not fail loudly; it produces a plausible document in the
 right place built from fixtures.
 
-**Your dashboard also has to be new enough to generate.** The plugin drives
-`POST /api/customer/:name/pov/generate`; a dashboard older than that endpoint is
-reachable but cannot do the job, and the skill refuses with a message saying so
-rather than failing somewhere less obvious.
+**Your dashboard also has to be new enough.** The plugin drives three
+endpoints — `POST /api/customer/:name/pov/context` for the grounded facts,
+`POST /api/customer/:name/pov/score` for the conformance gate, and
+`POST /api/customer/:name/pov/publish` to write the finished artifact. A
+dashboard older than those is reachable but cannot do the job, and the skill
+refuses with a message saying so rather than failing somewhere less obvious.
+
+**No model credential is required of you.** The writing happens in your own
+Claude Code session — the dashboard supplies the account intelligence and the
+grounded research, and grades what you wrote. That split is the whole reason
+this is installable by someone who has no cloud project of their own.
 
 It decides that by asking the endpoint, not by comparing a version number. A
 version is a label about the software; the endpoint is the software. Anyone

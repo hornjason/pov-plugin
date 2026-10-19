@@ -511,3 +511,75 @@ describe("Plugin carries no executable surface", () => {
     }
   });
 });
+
+/**
+ * ADR-051 SC-6 — the plugin names no model provider anywhere in its tree.
+ *
+ * **The criterion existed and nothing checked it.** Issue #3 words it as "the
+ * existing grep for provider references must stay at zero hits", and there was
+ * no such grep — the zero was a fact somebody had measured once by hand. That
+ * is the shape this repo's rules open with: a check that passed because of
+ * what it never looked at, in the degenerate case where the check was never
+ * written.
+ *
+ * It is not a credential scan. It is the ARCHITECTURE: under ADR-051 the
+ * consumer's own Claude Code writes the POV and the dashboard keeps whatever
+ * search provider it keeps, so a plugin that names one has either acquired a
+ * dependency it should not have or documented an internal that is not its
+ * business. Both are worth a red test; a reader cannot tell them apart from
+ * the string alone, and the string is what drifts.
+ *
+ * Caught its own documentation on the first run: a SUCCESS.md table row read
+ * "dashboard, on Gemini". That is the self-referential trap this repo has now
+ * recorded several times — prose about a provider is an occurrence of that
+ * provider — and the fix is the honest one, because which provider the
+ * dashboard researches with is not a fact this plugin depends on.
+ */
+describe("Plugin names no model provider", () => {
+  /**
+   * Built fresh per use rather than held as one `const`.
+   *
+   * A `/g/` regex carries `lastIndex` between calls, and `expect().toMatch()`
+   * goes through `.test()`, which advances it. Sharing one object across four
+   * assertions made the second one search from wherever the first stopped —
+   * so `"the research runs on Gemini"` reported NO MATCH against a pattern
+   * that plainly matches it, and the negative control failed while the thing
+   * it controls was fine.
+   *
+   * That is a check reporting the wrong answer for a reason unrelated to its
+   * subject, which is this repo's own instrument-failure rule arriving in the
+   * guard written to satisfy a different one. A factory has no state to
+   * carry.
+   */
+  const providerRe = () =>
+    /\b(gemini|vertex[\s_-]?ai|VERTEX_PROJECT_ID|GOOGLE_CLOUD_PROJECT|ANTHROPIC_API_KEY|OPENAI_API_KEY)\b/gi;
+
+  /** This file states the patterns in order to test for them. */
+  const SELF = "test/pov-plugin.test.ts";
+
+  test("PROVIDER-1: no provider name or model credential anywhere in the tree", () => {
+    const files = repoFiles(ROOT).filter(f => relative(ROOT, f) !== SELF);
+    // A scan over nothing is the failure this exists to catch.
+    expect(files.length).toBeGreaterThan(5);
+
+    const hits: string[] = [];
+    for (const file of files) {
+      const found = readFileSync(file, "utf-8").match(providerRe());
+      if (found) hits.push(`${relative(ROOT, file)}: ${[...new Set(found)].join(", ")}`);
+    }
+    expect(hits).toEqual([]);
+  });
+
+  test("PROVIDER-2: the pattern can fire, so the zero above means something", () => {
+    // The negative control. Without it, a pattern that matches nothing and a
+    // tree that contains nothing are the same green, and only one of them is
+    // a check. Asserted against strings built here rather than read from the
+    // tree, so this case cannot be satisfied by a real violation.
+    expect("configure VERTEX_PROJECT_ID before running").toMatch(providerRe());
+    expect("the research runs on Gemini").toMatch(providerRe());
+    expect("set ANTHROPIC_API_KEY").toMatch(providerRe());
+    // And a word that merely contains one of them is not a hit, because an
+    // over-firing architecture gate is one somebody deletes.
+    expect("the geminate consonant").not.toMatch(providerRe());
+  });
+});
