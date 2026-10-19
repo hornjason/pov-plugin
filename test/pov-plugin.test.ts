@@ -143,7 +143,11 @@ export type Pattern = [label: string, pattern: RegExp];
 export function structuralPatterns(): Pattern[] {
   return [
     ["real LinkedIn profile URL", /linkedin\.com\/in\/[A-Za-z0-9-]+/gi],
-    ["Google Drive file or folder ID", /\b[01][A-Za-z0-9_-]{27,}\b/g],
+    // Bounded at BOTH ends. A Drive file or folder ID is 28 to 44 characters;
+    // `{27,}` matched every longer run too, so a 64-character SHA-256 in the
+    // derived spec's generated banner was reported as a leaked Drive ID
+    // whenever the hash happened to begin with a `0` or a `1`. See MUT-6.
+    ["Google Drive file or folder ID", /\b[01][A-Za-z0-9_-]{27,43}\b/g],
     ["Google Docs document ID", /docs\.google\.com\/document\/d\/[A-Za-z0-9_-]{20,}/gi],
     ["real email address", emailPattern()],
   ];
