@@ -153,6 +153,52 @@ describe("The PII scan is load-bearing", () => {
   });
 
   /**
+   * The Drive-ID length bound, both directions, in one case (an internal
+   * issue, 2026-10-19).
+   *
+   * The pattern was `[01][A-Za-z0-9_-]{27,}` — unbounded on top. A Drive file
+   * or folder ID is 28 to 44 characters; nothing longer is one. So the rule
+   * matched every long alphanumeric run in the tree beginning with a `0` or a
+   * `1`, and `scripts/sync-spec.ts` writes two SHA-256 hashes into the banner
+   * of the file this gate is most concerned with. Roughly one sync in four
+   * produced a PII finding naming the generator's own hash.
+   *
+   * Nondeterminism is what makes it worth a case rather than a one-line fix.
+   * A gate that is red on a quarter of runs, over content nobody wrote, gets
+   * switched off — and the three clean runs in between are indistinguishable
+   * from a gate that works.
+   *
+   * The two halves fail for different reasons and both are required. Without
+   * the lower half, bounding the pattern reads exactly like deleting the rule.
+   */
+  test("MUT-6: a generated hash is not a Drive ID, and a Drive ID still is", () => {
+    const scan = (text: string) => {
+      const dir = scratch();
+      writeFileSync(join(dir, "probe.md"), text);
+      return piiViolations(repoFiles(dir), dir, structuralPatterns());
+    };
+    const DRIVE = "Google Drive file or folder ID";
+    const hit = (text: string) => scan(text).some(v => v.includes(DRIVE));
+
+    // NOT findings. Both leading digits, because only `0` and `1` can reach
+    // the rule at all — a hash beginning with any other character was never
+    // caught, which is precisely why this went unnoticed for as long as it did.
+    const sha1 = "1d03288f5c1e9fcdcc5d7d4643b75f0c629ee884a22a7312d860ef94f15fc759";
+    const sha0 = "0bca3521092ebd352f99dc0703689a50c042cce599311e501e28033496eda24e";
+    expect(sha1).toHaveLength(64);
+    expect(sha0).toHaveLength(64);
+    expect(hit(`body-sha256:   ${sha1}`)).toBe(false);
+    expect(hit(`source-sha256: ${sha0}`)).toBe(false);
+
+    // STILL findings, at both ends of the real range. A bound that admitted
+    // only the middle would pass the half above while quietly dropping the
+    // 44-character form, which is the shape a modern Drive URL carries.
+    expect(hit(`id ${"1" + "a".repeat(27)} here`)).toBe(true); // 28
+    expect(hit(`id ${"1" + "a".repeat(43)} here`)).toBe(true); // 44
+    expect(hit("https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456/view")).toBe(true);
+  });
+
+  /**
    * An absent identity list is the failure mode that produces a SHORTER
    * violation list rather than an error, so nothing downstream can see it.
    */

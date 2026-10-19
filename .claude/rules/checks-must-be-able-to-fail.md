@@ -185,3 +185,84 @@ fix; the three pure `specDriftStatus` branches are asserted on every machine;
 and an absent canonical spec is UNMEASURED rather than in-sync.
 
 None of the mutations is left in the tree; all five were run and reverted.
+
+## The gate reported the generator's own hash as a leak (an internal issue)
+
+`scripts/sync-spec.ts` writes two SHA-256 hashes into the banner of
+`specs/POV-SPEC.md`. The Drive-ID rule was
+
+    /\b[01][A-Za-z0-9_-]{27,}\b/g
+
+and a 64-character lowercase-hex digest beginning with `0` or `1` matches it.
+So after the SC-10 re-sync on 2026-10-19 the leak gate reported a Drive ID
+that was its own body hash, and two tests went red over content no human
+wrote.
+
+**The reason this is an entry and not a one-line fix is that it is a coin
+flip.** Two hashes per sync, each with a 2-in-16 chance of starting with a
+digit the rule can reach, so about one sync in four is red and the other three
+look clean. That is worse than always-red: a gate nobody can predict is a gate
+somebody disables, and the clean runs in between are indistinguishable from a
+gate that works. The same rule had been sitting over this file since the sync
+script landed and had simply never drawn a `0` or a `1`.
+
+**The cause is the detector, not the banner.** `{27,}` is unbounded on top. A
+Drive file or folder ID is 28 to 44 characters; nothing longer is one. The
+rule was written to say "at least 28" about a thing that has a ceiling, so it
+matched every long alphanumeric run in the tree — hashes, base64, anything
+generated. This file's third shape is a detector NARROWER than what it
+detects; this is the mirror, and both end the same way, with the rule removed
+by whoever is tired of it.
+
+Three repairs were considered and rejected, and naming them is cheaper than
+having them re-proposed:
+
+- **Exempt the file.** The derived spec is the one file in the tree most
+  likely to carry a real Drive ID — the canonical spec cites two, and
+  redacting them is the entire reason the redactor exists.
+- **Strip the banner before scanning.** That hides anything inside an HTML
+  comment from the gate, in every file, to fix one false positive.
+- **Shorten the hashes.** Tuning the data to dodge the detector leaves the
+  detector wrong, and the next generated artifact trips it again.
+
+Baseline `bun test`: **132 pass / 0 fail**, read before the mutant rows.
+Mutations applied by an anchor-asserting substitution that aborts on a no-op
+edit, restored from pristine copies immediately after, and both sources
+confirmed byte-identical afterwards.
+
+| # | What I broke | Red |
+|---|---|---|
+| M1 | the REDACTOR's copy unbounded, the gate left bounded | **1 of 132** |
+| M2 | the GATE's copy unbounded — the shipped defect | **3 of 132** |
+
+Inputs on which mutant and original differ, named and run rather than
+assumed:
+
+- **M2** — the derived spec as it stands, whose body hash begins with `1`.
+  The original reports no findings; the mutant reports a Drive ID and PII-1
+  goes red alongside MUT-6 and the shared-pattern assertion.
+- **M1** — nothing in the tree. The two copies of the rule simply disagree,
+  and only the assertion comparing their `source` and `flags` can see it.
+  That row is the whole argument for the two being compared rather than
+  trusted: a redactor that is wider than its gate strips more than it needs
+  to, and a redactor that is narrower ships what the gate will then refuse,
+  and neither shows up in any output until a sync runs.
+
+**M2's three reds are not double counting.** PII-1 says the tree is dirty,
+MUT-6 says the rule is wrong, and the drift case says the two copies have
+diverged — three different sentences about one edit, which is what makes the
+next person's failure output diagnostic instead of generic.
+
+**Negative controls, in MUT-6 itself so a bound cannot read as a deletion:**
+a 28-character ID, a 44-character ID and a real-shaped Drive URL are all
+still caught. Without them, `{27,43}` and "delete the rule" are the same
+change as far as the suite can tell.
+
+**And the entry you are reading is inside the corpus it describes.** The
+example digests quoted above are 64 characters, which the bounded rule no
+longer matches — so this section is safe to write today and would have been a
+PII finding yesterday. The fifth variant of the self-referential trap in
+these two repos, and the first where the fix is what makes the documentation
+of the fix possible.
+
+Neither mutation is left in the tree; both were run and reverted.

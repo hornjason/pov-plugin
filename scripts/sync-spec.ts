@@ -81,7 +81,7 @@ export function redactionsFrom(localList: string): Array<[RegExp, string]> {
  * `test/spec-drift.test.ts` asserts the two agree, because a copy of a regex
  * is a second decider and this file's whole subject is what copies do.
  */
-export const DRIVE_ID_RE = /\b[01][A-Za-z0-9_-]{27,}\b/g
+export const DRIVE_ID_RE = /\b[01][A-Za-z0-9_-]{27,43}\b/g
 
 export function redact(source: string, localList: string): string {
   return redactionsFrom(localList).reduce((text, [re, to]) => text.replace(re, to), source)

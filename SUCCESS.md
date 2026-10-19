@@ -2,7 +2,7 @@
 doc-type: reference
 status: active
 owner: jason
-updated: 2026-10-16
+updated: 2026-10-19
 ---
 
 # What this is, and what would prove it works
@@ -56,33 +56,52 @@ following only the README. Not a description of the steps — the steps, run.
 
 ### Claim 2 — It runs end to end against a real dashboard
 
-Discovers the dashboard, resolves the customer, **drives the dashboard's POV
-API**, renders the artifacts, and publishes them to that customer's Drive
-folder.
+Discovers the dashboard, resolves the customer, pulls grounded context,
+**writes the one-pager and the emails itself**, scores the draft against the
+dashboard's conformance gate, revises until it passes, renders the artifacts,
+and publishes them to that customer's Drive folder.
 
-**Rewritten 2026-10-17, because the claim described the wrong architecture.**
-This plugin spent its whole life assembling a POV out of raw intelligence
-endpoints. The dashboard has done that behind one call since issue #1480:
-`POST /api/customer/:name/pov/generate` takes a free-form `intent` and a
-`sourceUrls` list, grounds research against them, applies the AE's voice
-profile, runs an AI-detection gate and publishes. The plugin was reading 11 of
-42 customer-scoped endpoints and none of the ones that mattered.
+**Rewritten twice, and the second rewrite is the one that matters.**
 
-What the dashboard does not do is make it look like anything — its one-pager
-comes back as four markdown headings. **The visual layer is this plugin's
-job**, and that is now the whole of what it claims to do.
+The 2026-10-17 version said the plugin *"drives the dashboard's POV API"* —
+one call to `pov/generate` that researched, wrote, gated and published, with
+the plugin reduced to a visual layer over four markdown headings. That was a
+correction of an earlier version in which the plugin assembled a POV out of 11
+raw intelligence endpoints and none of the ones that mattered.
 
-The gap was found by Jason asking why the data looked so thin, then asking
-whether the earlier hand-built POVs could be read to see what they actually
-used. They could. They were on disk the whole time.
+**ADR-051 (2026-10-19) replaced it again, and the reason is the claim's own
+first sentence.** A colleague installs this *as a Claude Code plugin*. If the
+dashboard does the writing, every consumer of the plugin is a caller of one
+person's GCP project — for the one task their host already has a model for. A
+plugin that needs its own model credential has misplaced a dependency it was
+being handed for free.
 
-**How it fails:** it cannot find a dashboard that is running; it finds the wrong
-one of several; it silently skips an intelligence source and produces a POV that
-looks complete; it writes to the wrong Drive folder; it deletes and recreates an
-artifact instead of updating in place, breaking existing share links.
+So the split is **model-vs-deterministic**, not plugin-vs-dashboard:
+
+| Concern | Runs where |
+|---|---|
+| Account intelligence, contacts, AE voice profile | dashboard, `GET /pov/context` |
+| Grounded public web research | dashboard, on Gemini |
+| **Writing the one-pager and the per-persona emails** | **the consumer's own Claude Code** |
+| Conformance gate, AI-tell check, peer-citation check | dashboard, `POST /pov/score` |
+| Template, HTML, PDF, one-page fit | the plugin |
+| Publishing the finished artifact | dashboard, `POST /pov/publish` |
+
+The gate deliberately does **not** move with the generation. A model grading
+its own output against the rules it wrote from is one instrument twice; the
+whole value of the gate is that it is a different one. It needs no credential,
+so leaving it server-side costs the consumer nothing.
+
+**How it fails:** it cannot find a dashboard that is running; it finds the
+wrong one of several; it silently skips an intelligence source and produces a
+POV that looks complete; it writes a draft the gate rejects and ships it
+anyway; it trusts its own verdict instead of re-scoring at publish time; it
+writes to the wrong Drive folder; it deletes and recreates an artifact instead
+of updating in place, breaking existing share links.
 
 **How to measure it:** run it against the live dashboard and check the Drive
-folder, the share links, and which endpoints actually returned data.
+folder, the share links, which context sources actually returned data, and
+whether the published artifact's score matches the score the skill reported.
 
 **Resolved 2026-10-17 — and not by a run.** The question was *"nothing in the
 plugin names a tool that renders PDFs"*, and it was answered by reading the
@@ -225,12 +244,13 @@ from it.
 
 ## Where we actually stand
 
-Measured 2026-10-16. Update this section whenever a claim moves.
+Measured 2026-10-16; claim 2's row revised 2026-10-19 for ADR-051. Update this
+section whenever a claim moves.
 
 | Claim | Standing | What is in the way |
 |---|---|---|
 | 1 — a stranger can install it | **true, measured** | Nothing. See the run below |
-| 2 — end to end against a dashboard | **untested** | No POV has been generated. The port is fixed and discovery is specified, which is the part that was wrong — but that is a prerequisite, not the claim |
+| 2 — end to end against a dashboard | **untested, and the architecture changed under it** | No POV has been generated *by the plugin*. ADR-051 moved the writing into the consumer's Claude Code, so the three endpoints it now drives are the prerequisite. Two of them exist; `pov/publish` does not yet, and the skill still describes the old path |
 | 3 — consistent look and feel | **mechanism true, evidence absent** | The template ships and the override works. Nobody has put two renders side by side |
 | 4 — refuses honestly | **specified, not exercised** | Both refusals are written and tested as prose. Neither has been driven against a live dashboard |
 | 5 — nothing private ships | **true, tree and history** | Nothing. 0 occurrences across the complete patch history |
