@@ -5,33 +5,33 @@
 <meta charset="utf-8">
 <title>Northwind Logistics — A Perspective</title>
 <style>
-  @page { size: letter; margin: 0.5in; }
+  @page { size: letter; margin: 0.42in; }
   * { box-sizing: border-box; }
   body {
     font-family: 'Red Hat Display', 'Helvetica Neue', Arial, sans-serif;
-    color: #151515; margin: 0; padding: 0.45in 0.55in;
-    font-size: 10.5pt; line-height: 1.5; max-width: 8.5in;
+    color: #151515; margin: 0; padding: 0.33in 0.55in;
+    font-size: 10.5pt; line-height: 1.40; max-width: 8.5in;
   }
   h1 { font-size: 19pt; line-height: 1.15; margin: 0 0 2pt; letter-spacing: -0.4pt; }
-  .sub { color: #6a6e73; font-size: 10pt; margin: 0 0 16pt; }
+  .sub { color: #6a6e73; font-size: 10pt; margin: 0 0 12pt; }
   h2 {
     font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1.1pt;
-    color: #6a6e73; margin: 15pt 0 5pt; font-weight: 700;
+    color: #6a6e73; margin: 8pt 0 3pt; font-weight: 700;
   }
-  p { margin: 0 0 8pt; }
+  p { margin: 0 0 5pt; }
   strong { font-weight: 700; }
   .callout {
     border-left: 4px solid #EE0000; background: #FDF0F0;
-    padding: 11pt 14pt; margin: 14pt 0;
+    padding: 8pt 13pt; margin: 9pt 0;
   }
   .callout p { margin: 0; font-size: 11.5pt; line-height: 1.45; }
   .bridge {
     display: flex; align-items: stretch; gap: 10pt;
-    margin: 14pt 0; text-align: center;
+    margin: 11pt 0; text-align: center;
   }
   .bridge div {
     flex: 1; border: 1px solid #d2d2d2; border-radius: 3px;
-    padding: 9pt 7pt; font-size: 9pt; line-height: 1.35;
+    padding: 8pt 7pt; font-size: 9pt; line-height: 1.32;
   }
   .bridge .mid {
     background: #151515; color: #fff; border-color: #151515;
@@ -39,11 +39,21 @@
     flex: 0 0 24%;
   }
   table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 9.5pt; }
-  th, td { text-align: left; padding: 5pt 8pt 5pt 0; border-bottom: 1px solid #F5F5F5; vertical-align: top; }
+  th, td { text-align: left; padding: 3.5pt 8pt 3.5pt 0; border-bottom: 1px solid #F5F5F5; vertical-align: top; }
   th { color: #6a6e73; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.6pt; }
   .tradeoff { color: #4d5258; font-style: italic; font-size: 9.5pt; }
-  .cta { margin-top: 16pt; padding-top: 9pt; border-top: 2px solid #151515; text-align: right; }
-  .cta strong { font-size: 11pt; }
+  .tiles { display: flex; gap: 14pt; margin: 7pt 0 2pt; }
+  .tile { flex: 1; border-top: 3px solid #EE0000; padding: 6pt 0 0; }
+  .tile .v { font-size: 17pt; font-weight: 700; line-height: 1; letter-spacing: -0.5pt; }
+  .tile .l { font-size: 8.5pt; margin-top: 3pt; line-height: 1.3; }
+  .tile .s { font-size: 7.5pt; color: #6a6e73; margin-top: 2pt; }
+  ol.path { margin: 2pt 0 0; padding-left: 14pt; font-size: 9.5pt; }
+  ol.path li { margin: 0 0 3pt; line-height: 1.38; }
+  ol.path strong { display: block; }
+  .cta { margin-top: 10pt; padding-top: 8pt; border-top: 2px solid #151515;
+         display: flex; align-items: flex-end; justify-content: space-between; gap: 18pt; }
+  .cta strong { font-size: 11pt; text-align: right; }
+  .sig { font-size: 8.5pt; color: #6a6e73; line-height: 1.35; text-align: left; }
 </style>
 </head>
 <body>
@@ -54,28 +64,26 @@
 
   <h2>Your Environment</h2>
   <p>
-    The regional merger left two incompatible environments running side by side.
-    <strong>Project Lantern</strong> consolidates them this spring. The
-    <strong>driver app rewrite</strong> has been waiting on environment parity since the
-    deal closed. And the board has asked for a <strong>dispatch routing model</strong> in
-    production by Q3.
+    The regional merger left two incompatible environments. <strong>Project
+    Lantern</strong> consolidates them this spring, the <strong>driver app
+    rewrite</strong> has waited on parity since the deal closed, and the board wants a
+    <strong>dispatch routing model</strong> live by Q3.
   </p>
 
   <h2>What We're Seeing</h2>
   <p>
-    These three are planned in three different rooms, on three different budgets. The
-    sequencing assumes they are independent. They are not: the app rewrite is blocked by
-    the same split environment Lantern exists to fix, and the routing model needs
-    capacity that nobody has allocated yet.
+    Three rooms, three budgets, and a plan that assumes independence. The rewrite is
+    blocked by the same split environment Lantern exists to fix, and the routing model
+    needs capacity nobody allocated.
   </p>
 
   <!-- The convergence callout: the most important element on the page, rule 32 -->
   <div class="callout">
     <p>
       Consolidation is being treated as a cost project. It is the <strong>capacity
-      event</strong> that makes the other two possible. Finish Lantern and the app
-      rewrite unblocks itself, because staging finally matches production — and the
-      compute the merger was wasting becomes the compute the routing model runs on.
+      event</strong> that makes the other two possible. Finish Lantern and the rewrite
+      unblocks itself, because staging finally matches production, and the compute the
+      merger was wasting becomes the compute the routing model runs on.
     </p>
   </div>
 
@@ -84,6 +92,20 @@
     <div><strong>Project Lantern</strong><br>Two environments<br>into one</div>
     <div class="mid">Container platform</div>
     <div><strong>Q3 Routing Model</strong><br>Capacity and<br>GPU scheduling</div>
+  </div>
+
+  <!-- Stat tiles, rule 20 — every tile carries its source -->
+  <div class="tiles">
+    <div class="tile">
+      <div class="v">50%</div>
+      <div class="l">of compute freed by consolidation</div>
+      <div class="s">Gates Corporation, Red Hat case study</div>
+    </div>
+    <div class="tile">
+      <div class="v">400&rarr;150</div>
+      <div class="l">virtual machines after a merger</div>
+      <div class="s">B2 Impact, Red Hat case study</div>
+    </div>
   </div>
 
   <h2>The Numbers</h2>
@@ -101,15 +123,26 @@
     </tr>
   </table>
 
+  <!-- What the reader does on Monday, three ordered steps -->
+  <h2>A Path Forward</h2>
+  <ol class="path">
+    <li><strong>Finish Lantern on one platform</strong>Consolidate both estates onto the
+      container platform rather than reconciling two virtualization stacks.</li>
+    <li><strong>Unblock the rewrite from the same work</strong>Staging matches production
+      the day consolidation lands. That is the dependency the rewrite waits on.</li>
+    <li><strong>Schedule the routing model on the freed capacity</strong>The compute the
+      merger wasted becomes the compute the Q3 model runs on.</li>
+  </ol>
+
   <!-- Exactly one honest limitation, rule 29 -->
   <p class="tradeoff">
     One honest trade-off: this adds an abstraction layer your platform team has to learn,
-    and the first two quarters carry a real cost in ramp time. Teams that treat it as a
-    tooling swap rather than a skills investment tend to stall around month four.
+    and the first two quarters carry a real cost in ramp time.
   </p>
 
-  <!-- CTA bottom-right, rule 21 -->
+  <!-- CTA bottom-right and sender bottom-left, rule 21 -->
   <div class="cta">
+    <div class="sig">Dana Okonkwo &middot; Account Solution Architect</div>
     <strong>Worth 20 minutes to test the sequencing?</strong>
   </div>
 

@@ -19,39 +19,47 @@
   just the look.
 
   No date stamp anywhere, by rule 25.
+
+  The page geometry is part of the template, not a dial to turn per customer.
+  Rule 16 is one page, and the tiles, the path-forward list and the signature
+  arrived (#8) on a layout whose margins were set before they existed — so the
+  margins were reset once, here, as part of adding them. A run that bleeds
+  tightens its COPY; it does not reopen this number. `test/one-page.test.ts`
+  renders the worked example and fails at two pages, which is how the regression
+  that prompted this comment was found after eight green suites missed it.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>{{CUSTOMER_NAME}} — A Perspective</title>
 <style>
-  @page { size: letter; margin: 0.5in; }
+  @page { size: letter; margin: 0.42in; }
   * { box-sizing: border-box; }
   body {
     font-family: 'Red Hat Display', 'Helvetica Neue', Arial, sans-serif;
-    color: #151515; margin: 0; padding: 0.45in 0.55in;
-    font-size: 10.5pt; line-height: 1.5; max-width: 8.5in;
+    color: #151515; margin: 0; padding: 0.33in 0.55in;
+    font-size: 10.5pt; line-height: 1.40; max-width: 8.5in;
   }
   h1 { font-size: 19pt; line-height: 1.15; margin: 0 0 2pt; letter-spacing: -0.4pt; }
-  .sub { color: #6a6e73; font-size: 10pt; margin: 0 0 16pt; }
+  .sub { color: #6a6e73; font-size: 10pt; margin: 0 0 12pt; }
   h2 {
     font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1.1pt;
-    color: #6a6e73; margin: 15pt 0 5pt; font-weight: 700;
+    color: #6a6e73; margin: 8pt 0 3pt; font-weight: 700;
   }
-  p { margin: 0 0 8pt; }
+  p { margin: 0 0 5pt; }
   strong { font-weight: 700; }
   .callout {
     border-left: 4px solid #EE0000; background: #FDF0F0;
-    padding: 11pt 14pt; margin: 14pt 0;
+    padding: 8pt 13pt; margin: 9pt 0;
   }
   .callout p { margin: 0; font-size: 11.5pt; line-height: 1.45; }
   .bridge {
     display: flex; align-items: stretch; gap: 10pt;
-    margin: 14pt 0; text-align: center;
+    margin: 11pt 0; text-align: center;
   }
   .bridge div {
     flex: 1; border: 1px solid #d2d2d2; border-radius: 3px;
-    padding: 9pt 7pt; font-size: 9pt; line-height: 1.35;
+    padding: 8pt 7pt; font-size: 9pt; line-height: 1.32;
   }
   .bridge .mid {
     background: #151515; color: #fff; border-color: #151515;
@@ -59,11 +67,21 @@
     flex: 0 0 24%;
   }
   table { width: 100%; border-collapse: collapse; margin: 6pt 0; font-size: 9.5pt; }
-  th, td { text-align: left; padding: 5pt 8pt 5pt 0; border-bottom: 1px solid #F5F5F5; vertical-align: top; }
+  th, td { text-align: left; padding: 3.5pt 8pt 3.5pt 0; border-bottom: 1px solid #F5F5F5; vertical-align: top; }
   th { color: #6a6e73; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.6pt; }
   .tradeoff { color: #4d5258; font-style: italic; font-size: 9.5pt; }
-  .cta { margin-top: 16pt; padding-top: 9pt; border-top: 2px solid #151515; text-align: right; }
-  .cta strong { font-size: 11pt; }
+  .tiles { display: flex; gap: 14pt; margin: 7pt 0 2pt; }
+  .tile { flex: 1; border-top: 3px solid #EE0000; padding: 6pt 0 0; }
+  .tile .v { font-size: 17pt; font-weight: 700; line-height: 1; letter-spacing: -0.5pt; }
+  .tile .l { font-size: 8.5pt; margin-top: 3pt; line-height: 1.3; }
+  .tile .s { font-size: 7.5pt; color: #6a6e73; margin-top: 2pt; }
+  ol.path { margin: 2pt 0 0; padding-left: 14pt; font-size: 9.5pt; }
+  ol.path li { margin: 0 0 3pt; line-height: 1.38; }
+  ol.path strong { display: block; }
+  .cta { margin-top: 10pt; padding-top: 8pt; border-top: 2px solid #151515;
+         display: flex; align-items: flex-end; justify-content: space-between; gap: 18pt; }
+  .cta strong { font-size: 11pt; text-align: right; }
+  .sig { font-size: 8.5pt; color: #6a6e73; line-height: 1.35; text-align: left; }
 </style>
 </head>
 <body>
@@ -98,6 +116,23 @@
     <div><strong>{{BRIDGE_RIGHT_TITLE}}</strong><br>{{BRIDGE_RIGHT_DETAIL}}</div>
   </div>
 
+  <!-- Stat tiles, rule 20. A tile without its attribution is the failure the
+       rule names, so the source line is part of the tile and not optional:
+       a number large enough to be the first thing read has to say where it
+       came from in the same glance. -->
+  <div class="tiles">
+    <div class="tile">
+      <div class="v">{{TILE_1_VALUE}}</div>
+      <div class="l">{{TILE_1_LABEL}}</div>
+      <div class="s">{{TILE_1_SOURCE}}</div>
+    </div>
+    <div class="tile">
+      <div class="v">{{TILE_2_VALUE}}</div>
+      <div class="l">{{TILE_2_LABEL}}</div>
+      <div class="s">{{TILE_2_SOURCE}}</div>
+    </div>
+  </div>
+
   <h2>The Numbers</h2>
   <!-- Peer references. One named company and one concrete metric each, and a
        DIFFERENT reference per persona at the same account. Verify every URL
@@ -116,14 +151,30 @@
     </tr>
   </table>
 
+  <!-- What the reader does on Monday. Three steps, ordered, each one a thing
+       somebody can start — not a phased programme and not a sales stage. The
+       validated one-pager spent more words here than on any other section,
+       which is the argument for the section existing rather than the thesis
+       trailing off into a CTA. -->
+  <h2>A Path Forward</h2>
+  <ol class="path">
+    <li><strong>{{STEP_1_TITLE}}</strong>{{STEP_1_DETAIL}}</li>
+    <li><strong>{{STEP_2_TITLE}}</strong>{{STEP_2_DETAIL}}</li>
+    <li><strong>{{STEP_3_TITLE}}</strong>{{STEP_3_DETAIL}}</li>
+  </ol>
+
   <!-- Exactly one honest limitation, rule 29. Not a disclaimer and not a
        strength in disguise. The reader is deciding whether to trust the rest
        of the page, and this is the paragraph that earns it. -->
   <p class="tradeoff">{{TRADEOFF}}</p>
 
   <!-- CTA bottom-right, rule 21. A question proposing a short conversation,
-       not a request for a meeting to "discuss our solutions". -->
+       not a request for a meeting to "discuss our solutions". The sender sits
+       bottom-LEFT in the same rule: an unsolicited page a stranger receives
+       has to say who sent it, and the signature is the only element on the
+       page that does. -->
   <div class="cta">
+    <div class="sig">{{SENDER_NAME}} &middot; {{SENDER_TITLE}}</div>
     <strong>{{CTA}}</strong>
   </div>
 
