@@ -1,9 +1,11 @@
 {
-  "updated": "2026-10-16",
+  "updated": "2026-10-20",
   "priorities": [
-    "Review and update priorities in project-state.json"
+    "Evals suite + `claude plugin eval --ablation with-without`",
+    "#11 — install copies the whole tree; skill not callable in the install session",
+    "Two renders compared by eye (claim 3)"
   ],
-  "notes": "40 SCs discovered from specs. Organize into phases as project evolves.",
+  "notes": "2026-10-20: installed and driven end to end against a live dashboard. /pov/score 90, passed, one-page PDF. #8 fixed (PRs #9, #10). 148 pass / 0 fail.",
   "phases": [
     {
       "name": "Initial Implementation",

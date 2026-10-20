@@ -2,13 +2,13 @@
 doc-type: project-state
 status: in-progress
 owner: jason
-updated: 2026-10-17
-stop-point: Published and installable. Claims 1 and 5 true and measured. Remaining: one end-to-end run against a live dashboard (claim 2), two renders compared by eye (claim 3), and the HTTPS clone path for a colleague with no SSH key.
+updated: 2026-10-20
+stop-point: Installed and driven end to end against a live dashboard — score 90, passed, one-page PDF. Claims 1, 2, 4 and 5 true and measured. Remaining: two renders compared by eye (claim 3), the HTTPS clone path, and an evals suite. Open: #11.
 ---
 
 # pov-plugin — Project State
 
-## Current State (2026-10-17)
+## Current State (2026-10-20)
 
 A Claude Code plugin packaging the POV methodology for distribution. Extracted clean
 from a local working directory, which stays private and was not modified.
@@ -27,19 +27,29 @@ from a local working directory, which stays private and was not modified.
 - [x] **Claim 4, second row** — several dashboards is a question, not a guess
 - [x] **Claim 3 mechanism** — `templates/one-pager.html.tmpl` ships, with an override
 - [x] The dashboard port corrected from `3000` to `7777`/`7776`
-- [x] `bun test` → 58 pass, 0 fail, 4 files; `bun run typecheck` → 0 errors
+- [x] `bun test` → 148 pass, 0 fail, 38 todo, 8 files; `bun run typecheck` → 0 errors
+- [x] **Claim 2 — one end-to-end run against a live dashboard.** 2026-10-20, installed
+      from the local marketplace and driven through every step except publish:
+      discovery, capability probe, context (6 of 6 sources, `missing: []`), write,
+      three scoring passes, render. `/pov/score` → **90, `passed: true`**, peer
+      validation pass, zero AI-tells. One-page PDF. Write-up and artifacts in
+      `~/Projects/POV/runs/2026-10-20_fred-hutch/RUN-PLUGIN.md`.
+- [x] **Claim 4, both refusals driven for real.** The several-dashboards case fired:
+      both ports answered `200`. It was settled on evidence rather than a guess —
+      7776 holds one fixture customer and cannot serve the account — which is the
+      outcome the refusal is for. The `404` capability refusal did not fire; both
+      dashboards answered `400 {"error":"intent is required"}`.
+- [x] **`pathForward`, `statTiles`, and the signature reach the page** (#8, PRs #9
+      and #10). The template had no slot for any of them, so they were written,
+      scored, and dropped at render time. One-page rule now has a test that renders.
 
 ### Not done
 
-- [ ] **One end-to-end run against a live dashboard** (claim 2). Deliberately not
-      done unattended — the last step publishes to a real customer's Drive folder.
-      It also settles whether anything renders the PDF the spec describes.
 - [ ] **Two renders compared by eye** (claim 3). The template ships and the override
       works; the evidence that two POVs look alike does not exist and is not
-      automatable.
-- [ ] **Drive the two refusals against a live dashboard** (claim 4). Both are written
-      and tested as prose. Neither has fired in anger — and both dashboards are up
-      right now, so the several-dashboards case is reproducible on demand.
+      automatable. One real render now exists as the ancestor to compare against.
+- [ ] **`/pov/publish` has still never been called.** Everything up to it is proven.
+- [ ] **An `evals/` suite**, and `claude plugin eval --ablation with-without`.
 - [ ] **The HTTPS clone path.** The cold install succeeded but cloned over SSH,
       because this machine is configured for it. A colleague with no GitHub SSH key
       takes a different path.
