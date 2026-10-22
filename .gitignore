@@ -29,3 +29,11 @@ dist/
 # is the check that tells you whether they still work.
 credentials.json
 service-account*
+
+# Added by rungate scaffold
+.bun/
+build/
+*.tsbuildinfo
+*.p12
+*.pfx
+.secret*

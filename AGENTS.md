@@ -2,7 +2,7 @@
 doc-type: reference
 status: active
 owner: jason
-updated: 2026-10-16
+updated: 2026-10-22
 ---
 
 # pov-plugin
@@ -12,12 +12,6 @@ updated: 2026-10-16
 A Claude Code plugin that generates unsolicited customer POVs — a one-page visual document plus the outreach email that carries it — from account intelligence held in a locally running dashboard.
 **Tech:** Bun, TypeScript, ESM
 - **Repo:** https://github.com/hornjason/pov-plugin
-
-## Specs
-
-| Spec | What it governs |
-|------|-----------------|
-| `specs/POV-SPEC.md` | The methodology — 41 design rules and 43 success criteria. Everything the skill generates is graded against it. |
 
 ## Rules
 

@@ -58,24 +58,71 @@ function pageCount(pdf: Buffer): number {
   return [...pdf.toString("latin1").matchAll(/\/Type\s*\/Page(?![sA-Za-z])/g)].length;
 }
 
+/**
+ * The PDF is the verdict, not the exit status.
+ *
+ * Headless Chrome prints `171118 bytes written to file …` and then exits 2
+ * when its teardown watchdog expires — a complete, correct PDF behind a
+ * non-zero status. Measured 2026-10-22; the same invocation exited 0 the day
+ * before. Whether a render "passes" must not depend on how fast the browser
+ * shuts down, so the exit code is recorded and not believed.
+ *
+ * Reading the status was a detector pointed at a proxy. The property is "a
+ * PDF was produced and it has N pages", and that is now what is asked. The
+ * direction this is allowed to be wrong in is toward REFUSING: an absent or
+ * unparseable file throws and carries the status and stderr with it, because
+ * a render that produced nothing must not read as a render that produced one
+ * page.
+ */
 function renderPageCount(chrome: string, html: string): number {
   const dir = mkdtempSync(join(tmpdir(), "pov-onepage-"));
   try {
     const src = join(dir, "in.html");
     const out = join(dir, "out.pdf");
     writeFileSync(src, html);
-    execFileSync(chrome, [
-      "--headless",
-      "--disable-gpu",
-      "--no-pdf-header-footer",
-      `--print-to-pdf=${out}`,
-      src,
-    ], { stdio: "ignore", timeout: 60_000 });
-    return pageCount(readFileSync(out));
+    let status: number | string = 0;
+    let stderr = "";
+    try {
+      execFileSync(chrome, [
+        "--headless",
+        "--disable-gpu",
+        "--no-pdf-header-footer",
+        `--print-to-pdf=${out}`,
+        src,
+      ], { stdio: "pipe", timeout: 60_000 });
+    } catch (e: any) {
+      status = e?.status ?? e?.signal ?? "unknown";
+      stderr = String(e?.stderr ?? "");
+    }
+    if (!existsSync(out)) {
+      throw new Error(
+        `the renderer wrote no PDF (exit ${status}). This is a refusal, not a page count. ` +
+        `stderr: ${stderr.split("\n").filter(l => l.trim()).slice(-3).join(" | ")}`,
+      );
+    }
+    const pdf = readFileSync(out);
+    const pages = pageCount(pdf);
+    if (pages === 0) {
+      throw new Error(`the PDF carries no page objects (${pdf.length} bytes, exit ${status})`);
+    }
+    return pages;
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 }
+
+/**
+ * Spawning a browser does not fit in bun's default 5s per-test budget, and the
+ * budget is not a property of the thing being measured. Measured 2026-10-22:
+ * the same render took ~1s one day and ~11.5s the next, because Chrome hangs
+ * in teardown until its own watchdog fires — after the PDF is already written.
+ *
+ * A render that is genuinely stuck still fails, twice over: `execFileSync`
+ * carries its own 60s cap, and a run that produced no file is a refusal rather
+ * than a page count. What this avoids is a verdict decided by how busy the
+ * machine was.
+ */
+const RENDER_TIMEOUT_MS = 90_000;
 
 describe("The shipped artifacts fit on one page", () => {
   const chrome = findChrome();
@@ -96,7 +143,7 @@ describe("The shipped artifacts fit on one page", () => {
 
   test.skipIf(!chrome)("PAGE-1: the worked example renders to exactly one page", () => {
     expect(renderPageCount(chrome!, example)).toBe(1);
-  });
+  }, RENDER_TIMEOUT_MS);
 
   test.skipIf(!chrome)("PAGE-2: negative control — an overflowing example renders to two", () => {
     // Without this row, "always returns 1" and "the page fits" are the same
@@ -108,5 +155,5 @@ describe("The shipped artifacts fit on one page", () => {
     );
     expect(bloated).not.toEqual(example);
     expect(renderPageCount(chrome!, bloated)).toBeGreaterThan(1);
-  });
+  }, RENDER_TIMEOUT_MS);
 });
