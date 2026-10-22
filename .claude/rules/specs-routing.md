@@ -6,11 +6,11 @@ paths:
   - "gates/**"
   - "hooks/**"
   - "scripts/**"
-generated-sha: 2b472b895e9b5b6e
+generated-sha: 01251f97fa610e0d
 ---
 
 Read the governing spec BEFORE making changes in that area.
 
 | Spec | Governs | Testable |
 |------|---------|----------|
-| POV-SPEC.md | Unsolicited customer POV documents — the visual one-pager and the outreach email that carries it | true |
+| POV-SPEC.md | Customer-specific POV documents — visual one-pager and outreach email generation with research-backed rules | true |

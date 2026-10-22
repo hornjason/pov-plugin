@@ -6,7 +6,7 @@
       "name": "pov-plugin",
       "devDependencies": {
         "@types/bun": "latest",
-        "rungate": "0.5.0",
+        "rungate": "0.8.1",
         "typescript": "^5.6.0",
       },
     },
@@ -50,7 +50,7 @@
 
     "json-with-bigint": ["json-with-bigint@3.5.12", "", {}, "sha512-uwbF/wSSuOgC7qqlq27Xp5B6a2MHVug3t0idZdTqu0JnlFvgJuH7ju+KAk/J06C7GfhoYy2gnb9wz2INqcne7w=="],
 
-    "rungate": ["rungate@0.5.0", "", { "dependencies": { "@octokit/rest": "^22.0.1", "acorn": "^8.19.0", "zod": "^3.23.0" }, "bin": { "rungate": "bin/rungate.ts" } }, "sha512-gwReLiiplhHRV6lNTH0kofZg1rUQJDsiZubopGGk4DKomVx6FSxxWUGQeAIg8MhDmB3rMJaWxYyfGgcQSlORdw=="],
+    "rungate": ["rungate@0.8.1", "", { "dependencies": { "@octokit/rest": "^22.0.1", "acorn": "^8.19.0", "zod": "^3.23.0" }, "bin": { "rungate": "bin/rungate.ts" } }, "sha512-U8v4t/+jbk522VN8VHewbTrKD5PZ6175H5exHYTSwMs1HIP8Lurs1zPIJv6tHeTo46DPEUbd0MPz0IVngWHxWQ=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
