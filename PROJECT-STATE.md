@@ -3,7 +3,7 @@ doc-type: project-state
 status: in-progress
 owner: jason
 updated: 2026-10-22
-stop-point: rungate 0.8.1 merged (#13). STOP AND READ "A real customer name is in the public repo" below before anything else — a named account is live at specs/POV-SPEC.md:355 and in merged history (3397b44), and the gate passes because it is not on the 5-name identity list. Two decisions are Jason's and are blocking: the PII remedy, and PROTECT-1 branch protection. Remaining after those: two renders compared by eye (claim 3), the HTTPS clone path, an evals suite. Open: #11, #14.
+stop-point: rungate 0.8.1 merged (#13); re-test procedure and before-baseline recorded under "Re-test when the next rungate release lands" (pai-harness #1286/#1287). STOP AND READ "A real customer name is in the public repo" below before anything else — a named account is live at specs/POV-SPEC.md:355 and in merged history (3397b44), and the gate passes because it is not on the 5-name identity list. Two decisions are Jason's and are blocking: the PII remedy, and PROTECT-1 branch protection. Remaining after those: two renders compared by eye (claim 3), the HTTPS clone path, an evals suite. Open: #11, #14.
 ---
 
 # pov-plugin — Project State
@@ -122,6 +122,41 @@ first listed identity, verbatim                            -> CAUGHT
   it. **Jason's call, and it is the half that cannot be undone by a later commit.**
 
 Tracked as #14.
+
+## Re-test when the next rungate release lands
+
+Jason's call, 2026-10-22: upgrade again when a release carries the fixes, and check
+whether the scaffold does the right thing. **A version bump is not the signal** —
+pai-harness #1286 and #1287 have to be in the tree. Check those, not the number.
+
+The before-baseline below is a reading taken 2026-10-22 against `rungate@0.8.1` on a
+scratch copy of `304ea09`, so the re-test is a diff and not a judgement.
+
+**Procedure.** Never rehearse in the real tree. `git archive HEAD` into a scratch dir,
+symlink `node_modules`, `git init` + commit, then
+`bunx rungate scaffold . --profile minimal --fix`, and read `git diff`. Remove the
+symlink with `unlink` before deleting the scratch, or the delete walks into the real
+`node_modules`. **Do not read PROTECT-1 from a scratch copy** — it has no remote, so
+that check measures nothing there.
+
+| reading | 0.8.1 (before) | what the fix should show |
+|---|---|---|
+| `specs/POV-SPEC.md` diff | 39 insertions, 2 deletions | **0** — skipped, naming the DERIVED marker |
+| `<!-- REVIEW: unmatched -->` markers added | 37 | 0 |
+| criteria rewritten to `file-exists` | **2** (SC-18, SC-32) | 0 |
+| `body-sha256` updated to match the edit | 0 | n/a once it stops editing |
+| `.claude/rules/key-files.md` | `PRESERVED … generator output withheld` | preserved, **and** the differing PROJECT-STATE row named |
+
+The SC-32 rewrite is the one to look at first, because it reads as an improvement:
+
+```
+- [ ] SC-32: The convergence callout element is present in the rendered one-pager.
++ [ ] SC-32: test/unit/pov-onepager-render.test.ts exists — see SC-19.
+```
+
+The requirement is replaced by a file-existence check that passes whatever the file
+asserts, and the unmatched count goes DOWN, so compliance rises by weakening the
+criterion. If a future release still does this, the release is not the fix.
 
 ## Upstream: rungate 0.8.1 (merged 2026-10-22, PR #13)
 
