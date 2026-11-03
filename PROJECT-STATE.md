@@ -2,8 +2,8 @@
 doc-type: project-state
 status: in-progress
 owner: jason
-updated: 2026-10-22
-stop-point: rungate 0.8.1 merged (#13); re-test procedure and before-baseline recorded under "Re-test when the next rungate release lands" (pai-harness #1286/#1287). STOP AND READ "A real customer name is in the public repo" below before anything else — a named account is live at specs/POV-SPEC.md:355 and in merged history (3397b44), and the gate passes because it is not on the 5-name identity list. Two decisions are Jason's and are blocking: the PII remedy, and PROTECT-1 branch protection. Remaining after those: two renders compared by eye (claim 3), the HTTPS clone path, an evals suite. Open: #11, #14.
+updated: 2026-11-03
+stop-point: 2026-11-03 — standalone mode (a POV without the dashboard) DESIGNED, not built — ADR-001 + specs/STANDALONE-SPEC.md merged (#18, PR #19), 15 SCs pending as todos. Next is implementation in SKILL.md, SC by SC, each with a test that is broken by hand before it is trusted. PROTECT-1 RESOLVED — strict set to false on Jason's call, gates still required. Still open and Jason's: the PII remedy (#14). Earlier stop-point follows. rungate 0.8.1 merged (#13); re-test procedure and before-baseline recorded under "Re-test when the next rungate release lands" (pai-harness #1286/#1287). STOP AND READ "A real customer name is in the public repo" below before anything else — a named account is live at specs/POV-SPEC.md:355 and in merged history (3397b44), and the gate passes because it is not on the 5-name identity list. Two decisions are Jason's and are blocking: the PII remedy, and PROTECT-1 branch protection. Remaining after those: two renders compared by eye (claim 3), the HTTPS clone path, an evals suite. Open: #11, #14.
 ---
 
 # pov-plugin — Project State
